@@ -62,10 +62,11 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 32),
 
-              // Interactive Globe Widget
+      // Interactive Globe Widget
               Container(
                 constraints: BoxConstraints(
                   maxHeight: screenSize.height * 0.5,
+                  maxWidth: screenSize.width * 0.9,
                 ),
                 child: InteractiveGlobe(
                   onCountryTap: _handleCountryTap,
