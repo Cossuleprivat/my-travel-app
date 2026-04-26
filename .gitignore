@@ -36,3 +36,9 @@ next-env.d.ts
 
 # Superpowers brainstorm sessions
 .superpowers/
+
+# Claude Code memory & settings
+.claude/
+
+# Cursor settings
+.cursor/
