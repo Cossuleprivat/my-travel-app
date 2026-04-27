@@ -1,24 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const dmSerifDisplay = DM_Serif_Display({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: "400",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Travel Scorer — Track every journey",
   description:
-    "Track your travels, complete city quests, and plan smarter trips with Travel Scorer.",
+    "Track your travels, level up your character, and explore the world.",
 };
 
 export default function RootLayout({
@@ -27,11 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${dmSerifDisplay.variable}`}
-    >
-      <body className="antialiased bg-stone-50 text-stone-900 font-sans">
+    <html lang="en">
+      <body className="antialiased bg-bg-base text-text-primary font-sans min-h-screen">
         {children}
       </body>
     </html>

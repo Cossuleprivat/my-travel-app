@@ -3,23 +3,21 @@
 @tailwind utilities;
 
 @layer base {
-  /* Smooth scrolling */
+  html, body {
+    background: #0e1a26;
+    color: #c0dff0;
+    color-scheme: dark;
+  }
   html {
     scroll-behavior: smooth;
   }
-
-  /* Focus ring — visible, WCAG AA compliant */
   :focus-visible {
-    outline: 2px solid #0369a1;
+    outline: 2px solid #40a0d0;
     outline-offset: 2px;
     border-radius: 4px;
   }
-
-  /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -28,9 +26,14 @@
 }
 
 @layer utilities {
-  /* Animated delay helpers */
-  .animation-delay-100 { animation-delay: 100ms; }
-  .animation-delay-200 { animation-delay: 200ms; }
-  .animation-delay-300 { animation-delay: 300ms; }
-  .animation-delay-400 { animation-delay: 400ms; }
+  .pixel-border {
+    box-shadow:
+      inset 0 0 0 1px #2a5070,
+      0 0 0 1px #0e1a26;
+  }
+  .label-mono {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 }
