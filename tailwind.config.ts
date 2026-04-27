@@ -7,37 +7,44 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // --- Design Tokens (session-01-ui-build.md) ---
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['ui-monospace', 'Menlo', 'Consolas', 'monospace'],
       },
       colors: {
-        // Brand palette — ocean/sky metaphor for travel
-        brand: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
+        bg: {
+          base: '#0e1a26',
+          surface: '#121e2c',
+          elevated: '#162230',
+        },
+        text: {
+          primary: '#c0dff0',
+          secondary: '#80a0b8',
+          muted: '#405060',
+        },
+        accent: {
+          blue: '#40a0d0',
+          amber: '#d48030',
+          green: '#40c070',
+          purple: '#a060e0',
+        },
+        border: {
+          subtle: '#192535',
+          interactive: '#2a5070',
         },
       },
       animation: {
-        "fade-up": "fadeUp 0.5s ease-out both",
-        "fade-in": "fadeIn 0.4s ease-out both",
+        'fade-up': 'fadeUp 0.3s ease-out both',
+        'fade-in': 'fadeIn 0.25s ease-out both',
       },
       keyframes: {
         fadeUp: {
-          "0%": { opacity: "0", transform: "translateY(12px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
     },
