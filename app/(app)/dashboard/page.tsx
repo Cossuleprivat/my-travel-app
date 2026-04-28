@@ -1,16 +1,17 @@
 import Link from 'next/link';
 import { getUserStats, listRecentActivity, ensureUserProfile } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
 
 export default async function DashboardPage() {
-  const profile = await ensureUserProfile(DEV_USER_ID);
+  const userId = await requireUserId();
+  const profile = await ensureUserProfile(userId);
   const [stats, recent] = await Promise.all([
-    getUserStats(DEV_USER_ID),
-    listRecentActivity(DEV_USER_ID, 6),
+    getUserStats(userId),
+    listRecentActivity(userId, 6),
   ]);
   const level = calcLevel(stats.xpTotal);
 

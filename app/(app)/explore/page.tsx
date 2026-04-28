@@ -1,11 +1,12 @@
 import { listContinents, listCountriesByContinent, getVisitedSets } from '@/lib/data/queries';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { HierarchyRow } from '@/components/explore/HierarchyRow';
 
 export default async function ExplorePage() {
+  const userId = await requireUserId();
   const continents = await listContinents();
-  const visited = await getVisitedSets(DEV_USER_ID);
+  const visited = await getVisitedSets(userId);
 
   // Per-continent country counts (visited / total).
   const counts = await Promise.all(

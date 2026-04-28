@@ -2,19 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { createServiceClient } from '@/lib/supabase/server';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { XP_EVENTS, levelFromXp } from '@/lib/xp';
 import {
   evaluateAchievements,
   type AchievementId,
 } from '@/lib/achievements';
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
-
-// AUTH BYPASS: returns hardcoded dev user. Session 05 swaps this with
-// supabase.auth.getUser() in middleware.
-function getCurrentUserId(): string {
-  return DEV_USER_ID;
-}
 
 async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
   const sb = createServiceClient();
@@ -50,7 +44,7 @@ async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
 }
 
 export async function markContinentVisited(continentId: string) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
   const { error } = await sb
     .from('user_continent_visits')
@@ -64,7 +58,7 @@ export async function markContinentVisited(continentId: string) {
 }
 
 export async function unmarkContinentVisited(continentId: string) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
   const { data: existed } = await sb
     .from('user_continent_visits')
@@ -80,7 +74,7 @@ export async function unmarkContinentVisited(continentId: string) {
 }
 
 export async function markCountryVisited(countryId: string) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
   const { error } = await sb
     .from('user_country_visits')
@@ -92,7 +86,7 @@ export async function markCountryVisited(countryId: string) {
 }
 
 export async function unmarkCountryVisited(countryId: string) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
   const { data: existed } = await sb
     .from('user_country_visits')
@@ -115,7 +109,7 @@ export type CityVisitInput = {
 };
 
 export async function markCityVisited(input: CityVisitInput) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
 
   // For dateless visits, the partial unique index blocks duplicates.
@@ -151,7 +145,7 @@ export async function markCityVisited(input: CityVisitInput) {
 }
 
 export async function toggleSightCompleted(questId: string) {
-  const userId = getCurrentUserId();
+  const userId = await requireUserId();
   const sb = createServiceClient();
 
   const { data: existing } = await sb

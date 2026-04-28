@@ -3,7 +3,7 @@ import {
   getContinentBySlug, getCountryBySlug,
   listCitiesByCountry, getVisitedSets,
 } from '@/lib/data/queries';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { Breadcrumb } from '@/components/explore/Breadcrumb';
 import { HierarchyRow } from '@/components/explore/HierarchyRow';
@@ -19,9 +19,10 @@ export default async function CountryPage({
   ]);
   if (!continent || !country || country.continent_id !== continent.id) notFound();
 
+  const userId = await requireUserId();
   const [cities, visited] = await Promise.all([
     listCitiesByCountry(country.id),
-    getVisitedSets(DEV_USER_ID),
+    getVisitedSets(userId),
   ]);
   const isCountryVisited = visited.countries.has(country.id);
 

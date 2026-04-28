@@ -31,15 +31,14 @@ export function PublicNav() {
             </Link>
 
             <div className="flex items-center gap-3">
-              {/* AUTH BYPASS: both links go to /dashboard until real auth is implemented */}
               <Link
-                href="/dashboard"
+                href="/auth/login"
                 className="hidden sm:inline-flex items-center text-xs label-mono text-text-muted hover:text-text-secondary transition-colors"
               >
                 Sign in
               </Link>
               <Link
-                href="/dashboard"
+                href="/auth/signup"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-4 py-2 text-sm font-medium text-bg-base hover:bg-accent-blue/90 transition-colors"
               >
                 Get Started →

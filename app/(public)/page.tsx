@@ -48,23 +48,22 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              {/* AUTH BYPASS: links go to /dashboard until real auth is implemented */}
               <Link
-                href="/dashboard"
+                href="/auth/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-blue px-6 py-3.5 text-base font-medium text-bg-base hover:bg-accent-blue/90 transition-colors"
               >
                 Start for free →
               </Link>
               <Link
-                href="/explore"
+                href="/auth/login"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-border-interactive bg-bg-surface px-6 py-3.5 text-base font-medium text-text-primary hover:bg-bg-elevated transition-colors"
               >
-                Explore the world
+                Sign in
               </Link>
             </div>
 
             <p className="mt-4 text-xs label-mono text-text-muted">
-              No credit card required · Auth coming in Session 05
+              No credit card required · 30 seconds to sign up
             </p>
           </div>
         </div>
@@ -130,12 +129,11 @@ export default function LandingPage() {
             Join travelers who track their journeys, complete city quests, and
             plan smarter trips.
           </p>
-          {/* AUTH BYPASS: link goes to /dashboard until real auth is implemented */}
           <Link
-            href="/dashboard"
+            href="/auth/signup"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-blue px-8 py-4 text-lg font-medium text-bg-base hover:bg-accent-blue/90 transition-colors"
           >
-            Open the dashboard →
+            Create account →
           </Link>
         </div>
       </section>

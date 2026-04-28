@@ -5,7 +5,7 @@ import {
 } from '@/lib/data/queries';
 import { ensureCitySights } from '@/lib/data/wikidata';
 import { createServiceClient } from '@/lib/supabase/server';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { Breadcrumb } from '@/components/explore/Breadcrumb';
 import { WarHierButton } from '@/components/explore/WarHierButton';
 import { SightChecklist } from '@/components/explore/SightChecklist';
@@ -24,6 +24,8 @@ export default async function CityPage({
   if (country.continent_id !== continent.id) notFound();
   if (city.country_id !== country.id) notFound();
 
+  const userId = await requireUserId();
+
   // Lazy: trigger Wikidata fetch if no sights cached. Best-effort.
   await ensureCitySights(city.id, city.name);
   const sights = await listSightsForCity(city.id);
@@ -33,10 +35,10 @@ export default async function CityPage({
   const { data: completed } = await sb
     .from('user_quest_progress')
     .select('quest_id')
-    .eq('user_id', DEV_USER_ID).eq('status', 'completed');
+    .eq('user_id', userId).eq('status', 'completed');
   const completedSet = new Set((completed ?? []).map((c) => c.quest_id));
 
-  const visited = await getVisitedSets(DEV_USER_ID);
+  const visited = await getVisitedSets(userId);
   const alreadyTracked = visited.cities.has(city.id);
 
   return (

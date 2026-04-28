@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import {
   getContinentBySlug, listCountriesByContinent, getVisitedSets,
 } from '@/lib/data/queries';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { Breadcrumb } from '@/components/explore/Breadcrumb';
 import { HierarchyRow } from '@/components/explore/HierarchyRow';
@@ -15,9 +15,10 @@ export default async function ContinentPage({
   const continent = await getContinentBySlug(slug);
   if (!continent) notFound();
 
+  const userId = await requireUserId();
   const [countries, visited] = await Promise.all([
     listCountriesByContinent(continent.id),
-    getVisitedSets(DEV_USER_ID),
+    getVisitedSets(userId),
   ]);
   const isContinentVisited = visited.continents.has(continent.id);
 

@@ -1,15 +1,20 @@
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
-import { DEV_USER_ID } from '@/lib/dev-user';
+import { requireUserId } from '@/lib/auth/current-user';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { CustomizationSlots } from '@/components/profile/CustomizationSlots';
 import { AchievementsStrip } from '@/components/profile/AchievementsStrip';
+import { SignOutButton } from '@/components/auth/SignOutButton';
+import { createCookieClient } from '@/lib/supabase/cookie-client';
 
 export default async function ProfilePage() {
-  const profile = await ensureUserProfile(DEV_USER_ID);
+  const userId = await requireUserId();
+  const sb = await createCookieClient();
+  const { data: { user } } = await sb.auth.getUser();
+  const profile = await ensureUserProfile(userId);
   const [stats, ach] = await Promise.all([
-    getUserStats(DEV_USER_ID),
-    listUserAchievements(DEV_USER_ID),
+    getUserStats(userId),
+    listUserAchievements(userId),
   ]);
   const level = calcLevel(stats.xpTotal);
 
@@ -24,11 +29,13 @@ export default async function ProfilePage() {
       <AchievementsStrip unlocked={new Set(ach)} />
 
       <section className="rounded-xl bg-bg-surface border border-border-subtle p-4 space-y-3">
-        <h2 className="text-xs label-mono text-text-muted">Settings</h2>
-        <p className="text-text-secondary text-sm">
-          Account &amp; auth land in Session 05. Display name, language,
-          notifications, and privacy will live here.
-        </p>
+        <h2 className="text-xs label-mono text-text-muted">Account</h2>
+        {user?.email && (
+          <p className="text-text-secondary text-sm">
+            Signed in as <span className="text-text-primary">{user.email}</span>
+          </p>
+        )}
+        <SignOutButton />
       </section>
     </div>
   );
