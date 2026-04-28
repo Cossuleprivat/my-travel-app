@@ -1,3 +1,6 @@
+// `as any` is used for nested join shapes returned by supabase-js; replaced
+// with generated DB types in Session 05.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'server-only';
 import { createServiceClient } from '@/lib/supabase/server';
 import type {
