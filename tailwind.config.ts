@@ -18,9 +18,9 @@ const config: Config = {
           elevated: '#162230',
         },
         text: {
-          primary: '#c0dff0',
-          secondary: '#80a0b8',
-          muted: '#405060',
+          primary: '#e0eef8',
+          secondary: '#a8c4d8',
+          muted: '#7892a8',
         },
         accent: {
           blue: '#40a0d0',

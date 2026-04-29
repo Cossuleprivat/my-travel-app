@@ -1,8 +1,5 @@
-// AUTH BYPASS ACTIVE (intentional):
-// Auth guard is deliberately disabled to allow feature-first development.
-// Real auth (Supabase session check + redirect to /auth) will be added
-// once all app features are built and validated.
-// See docs/auth-guard-approach.md for the guard strategy and reactivation checklist.
+// Auth guard is enforced by middleware.ts at the project root.
+// Unauthenticated requests to /(app) routes are redirected to /auth/login.
 
 import { AppShell } from "@/components/layout/AppShell";
 
