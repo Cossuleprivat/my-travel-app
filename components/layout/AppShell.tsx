@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Content — offset by sidebar on desktop */}
-      <main className="lg:pl-16 mx-auto w-full max-w-4xl px-4 pb-24 pt-4 lg:pb-8 lg:pt-8">
+      <main className="relative z-10 lg:pl-16 mx-auto w-full max-w-4xl px-4 pb-24 pt-4 lg:pb-8 lg:pt-8">
         {children}
       </main>
 

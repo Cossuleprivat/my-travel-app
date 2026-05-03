@@ -40,16 +40,16 @@ export default async function ExplorePage() {
           const pct = total > 0 ? Math.round((visitedCount / total) * 100) : 0;
 
           const statusColor = isVisited
-            ? 'border-accent-green/40 hover:shadow-glow-green'
+            ? 'border-accent-green/60 hover:shadow-glow-green'
             : visitedCount > 0
-              ? 'border-accent-amber/40 hover:shadow-glow-amber'
+              ? 'border-accent-amber/60 hover:shadow-glow-amber'
               : 'border-border-subtle hover:border-border-interactive';
 
           return (
             <li key={c.id}>
               <Link
                 href={`/explore/${c.slug}`}
-                className={`group block rounded-2xl bg-bg-surface border ${statusColor} p-5 lg:p-6 transition-all duration-300`}
+                className={`group block rounded-2xl bg-bg-surface border ${statusColor} shadow-card p-5 lg:p-6 transition-all duration-300`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <span className="text-4xl lg:text-5xl" aria-hidden="true">{c.emoji ?? '◎'}</span>

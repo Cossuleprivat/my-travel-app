@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       <div className="space-y-5">
         <HeroBanner name={profile.display_name ?? 'Traveler'} level={level} />
 
-        <section className="hidden lg:block rounded-2xl bg-bg-surface border border-border-subtle p-6">
+        <section className="hidden lg:block rounded-2xl bg-bg-surface border border-border-subtle shadow-card p-6">
           <h2 className="text-xs label-mono text-text-muted uppercase tracking-widest mb-4">World Coverage</h2>
           <div className="space-y-4">
             {[
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
           <KpiCard label="Sights"     value={stats.sightCount}               tone="purple" />
         </section>
 
-        <section className="rounded-2xl bg-bg-surface border border-border-subtle p-4 lg:p-5">
+        <section className="rounded-2xl bg-bg-surface border border-border-subtle shadow-card p-4 lg:p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm label-mono text-text-secondary uppercase tracking-widest">Adventure Log</h2>
             <Link href="/explore" className="text-accent-blue text-xs label-mono hover:text-accent-blue/80 transition-colors">

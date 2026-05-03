@@ -13,9 +13,9 @@ const config: Config = {
       },
       colors: {
         bg: {
-          base: '#0e1a26',
-          surface: '#121e2c',
-          elevated: '#162230',
+          base: '#0a1520',
+          surface: '#192c45',
+          elevated: '#1f3a5c',
         },
         text: {
           primary: '#e0eef8',
@@ -29,7 +29,7 @@ const config: Config = {
           purple: '#a060e0',
         },
         border: {
-          subtle: '#192535',
+          subtle: '#1e3550',
           interactive: '#2a5070',
         },
       },
@@ -39,6 +39,7 @@ const config: Config = {
         'glow-green':  '0 0 16px 0 rgba(64,192,112,0.35)',
         'glow-purple': '0 0 16px 0 rgba(160,96,224,0.35)',
         'glow-sm-blue': '0 0 8px 0 rgba(64,160,208,0.25)',
+        'card': '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
       },
       backgroundImage: {
         'pixel-grid': "radial-gradient(circle, rgba(64,160,208,0.07) 1px, transparent 1px)",
