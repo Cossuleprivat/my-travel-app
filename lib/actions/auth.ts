@@ -38,12 +38,18 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   if (error) return { ok: false, error: error.message };
   if (!data.user) return { ok: false, error: 'Sign-up failed.' };
 
-  // Best-effort profile bootstrap. ensureUserProfile is idempotent.
-  await ensureUserProfile(data.user.id);
-  if (displayName) {
-    const { createServiceClient } = await import('@/lib/supabase/server');
-    const admin = createServiceClient();
-    await admin.from('user_profiles').update({ display_name: displayName }).eq('id', data.user.id);
+  // Best-effort profile bootstrap — wrapped because Supabase returns a fake user
+  // object for duplicate emails (enumeration protection). That fake ID won't exist
+  // in auth.users, producing a 23503 FK violation we can safely ignore.
+  try {
+    await ensureUserProfile(data.user.id);
+    if (displayName) {
+      const { createServiceClient } = await import('@/lib/supabase/server');
+      const admin = createServiceClient();
+      await admin.from('user_profiles').update({ display_name: displayName }).eq('id', data.user.id);
+    }
+  } catch (e) {
+    if ((e as { code?: string })?.code !== '23503') throw e;
   }
   revalidatePath('/', 'layout');
   return { ok: true };

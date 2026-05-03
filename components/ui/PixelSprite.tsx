@@ -1,41 +1,47 @@
-type Size = 'sm' | 'md' | 'lg';
+import { getSpriteSource, type CharacterPreset } from '@/lib/sprites';
 
-const sizeMap: Record<Size, string> = {
-  sm: 'w-12 h-12',
-  md: 'w-20 h-20',
-  lg: 'w-32 h-32',
+type Size = 'sm' | 'md' | 'lg' | 'xl';
+
+const sizeMap: Record<Size, { className: string; px: number; cols: number; rows: number }> = {
+  sm:  { className: 'w-12 h-12',   px: 48,  cols: 7, rows: 10 },
+  md:  { className: 'w-20 h-20',   px: 80,  cols: 7, rows: 10 },
+  lg:  { className: 'w-32 h-32',   px: 128, cols: 7, rows: 10 },
+  xl:  { className: 'w-48 h-48',   px: 192, cols: 7, rows: 10 },
 };
 
-// Static placeholder. Real sprites land in Session 03.
-// Renders a minimal CSS pixel-art body (head + body + base) using a
-// 7x10 grid of divs.
-export function PixelSprite({ size = 'md' }: { size?: Size }) {
-  const px = size === 'sm' ? 6 : size === 'md' ? 10 : 16;
-  // Color map: 0=transparent, 1=skin, 2=outline, 3=shirt, 4=hair
-  const grid: number[][] = [
-    [0,0,2,2,2,0,0],
-    [0,2,4,4,4,2,0],
-    [0,2,1,1,1,2,0],
-    [0,0,2,1,2,0,0],
-    [0,2,3,3,3,2,0],
-    [2,3,3,3,3,3,2],
-    [2,3,3,3,3,3,2],
-    [2,3,3,3,3,3,2],
-    [0,2,3,0,3,2,0],
-    [0,2,2,0,2,2,0],
-  ];
-  const palette = ['transparent', '#e8c8a0', '#0e1a26', '#40a0d0', '#604030'];
+export function PixelSprite({
+  preset = 'default',
+  size = 'md',
+}: {
+  preset?: CharacterPreset;
+  size?: Size;
+}) {
+  const source = getSpriteSource(preset);
+  const { className, px, cols, rows } = sizeMap[size];
+
+  if (source.type === 'url') {
+    return (
+      <img
+        src={source.url}
+        alt={source.alt}
+        className={className}
+        style={{ imageRendering: 'pixelated' }}
+      />
+    );
+  }
+
+  const cellW = px / cols;
+  const cellH = px / rows;
+
   return (
     <div
-      className={`${sizeMap[size]} grid grid-cols-7 grid-rows-10 mx-auto`}
+      className={`${className} grid flex-shrink-0`}
+      style={{ gridTemplateColumns: `repeat(${cols}, ${cellW}px)`, gridTemplateRows: `repeat(${rows}, ${cellH}px)` }}
       role="img"
       aria-label="Pixel character"
     >
-      {grid.flat().map((c, i) => (
-        <div
-          key={i}
-          style={{ background: palette[c], width: px / 7 + 'px', height: px / 10 + 'px' }}
-        />
+      {source.grid.flat().map((c, i) => (
+        <div key={i} style={{ background: source.palette[c] ?? 'transparent' }} />
       ))}
     </div>
   );

@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { GiHouse, GiCompass, GiAirplane, GiCharacter } from 'react-icons/gi';
 
 const ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: '⌂' },
-  { href: '/explore',   label: 'Explore',   icon: '◎' },
-  { href: '/trips',     label: 'Trips',     icon: '✈' },
-  { href: '/profile',   label: 'Profile',   icon: '◈' },
+  { href: '/dashboard', Icon: GiHouse,    label: 'Dashboard' },
+  { href: '/explore',   Icon: GiCompass,  label: 'Explore' },
+  { href: '/trips',     Icon: GiAirplane, label: 'Trips' },
+  { href: '/profile',   Icon: GiCharacter,label: 'Profile' },
 ] as const;
 
 export function BottomNav() {
@@ -15,25 +16,23 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-border-subtle bg-bg-surface/95 backdrop-blur"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border-subtle bg-bg-surface/95 backdrop-blur"
     >
       <ul className="grid grid-cols-4 max-w-2xl mx-auto">
-        {ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+        {ITEMS.map(({ href, Icon, label }) => {
+          const active = pathname === href || pathname.startsWith(href + '/');
           return (
-            <li key={item.href}>
+            <li key={href}>
               <Link
-                href={item.href}
+                href={href}
                 className={[
                   'flex flex-col items-center justify-center py-3 gap-1 text-xs label-mono transition-colors',
-                  active
-                    ? 'text-accent-blue'
-                    : 'text-text-muted hover:text-text-secondary',
+                  active ? 'text-accent-blue' : 'text-text-muted hover:text-text-secondary',
                 ].join(' ')}
                 aria-current={active ? 'page' : undefined}
               >
-                <span className="text-xl leading-none" aria-hidden="true">{item.icon}</span>
-                <span>{item.label}</span>
+                <Icon className="text-2xl" aria-hidden="true" />
+                <span>{label}</span>
               </Link>
             </li>
           );

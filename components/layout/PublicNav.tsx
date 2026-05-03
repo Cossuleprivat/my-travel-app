@@ -30,18 +30,18 @@ export function PublicNav() {
               </span>
             </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Link
                 href="/auth/login"
-                className="hidden sm:inline-flex items-center text-xs label-mono text-text-muted hover:text-text-secondary transition-colors"
+                className="inline-flex items-center rounded-lg border border-border-interactive bg-bg-elevated px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-surface transition-colors"
               >
-                Sign in
+                Login
               </Link>
               <Link
                 href="/auth/signup"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-4 py-2 text-sm font-medium text-bg-base hover:bg-accent-blue/90 transition-colors"
               >
-                Get Started →
+                Registrieren
               </Link>
             </div>
           </nav>
