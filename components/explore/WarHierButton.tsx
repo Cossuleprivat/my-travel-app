@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { GiCheckMark } from 'react-icons/gi';
 import { markCityVisited } from '@/lib/actions/visits';
 
 export function WarHierButton({
@@ -31,7 +32,7 @@ export function WarHierButton({
   if (done) {
     return (
       <div className="rounded-xl bg-accent-green/15 border border-accent-green/30 px-4 py-6 text-center">
-        <p className="text-accent-green text-lg font-sans">✓ You&apos;ve been here</p>
+        <p className="text-accent-green text-lg font-sans flex items-center justify-center gap-2"><GiCheckMark />You&apos;ve been here</p>
         <p className="text-text-muted text-xs mt-1">+10 XP added to your journey</p>
       </div>
     );

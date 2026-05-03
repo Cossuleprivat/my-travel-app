@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { GiCheckMark, GiPositionMarker } from 'react-icons/gi';
 import { markContinentVisited, unmarkContinentVisited } from '@/lib/actions/visits';
 
 export function ContinentVisitToggle({
@@ -23,7 +24,10 @@ export function ContinentVisitToggle({
         pending && 'opacity-50',
       ].filter(Boolean).join(' ')}
     >
-      {pending ? '…' : visited ? '✓ Visited' : '+ Track'}
+      {pending ? '…' : visited
+        ? <><GiCheckMark className="inline mr-1" />Visited</>
+        : <><GiPositionMarker className="inline mr-1" />Track</>
+      }
     </button>
   );
 }

@@ -19,9 +19,9 @@ export function HierarchyRow({
 }) {
   const badge =
     status === 'visited'
-      ? { label: badgeText ?? '✓ Visited', cls: 'bg-accent-green/15 text-accent-green' }
+      ? { label: badgeText ?? 'Visited', cls: 'bg-accent-green/15 text-accent-green' }
       : status === 'partial'
-        ? { label: badgeText ?? '·', cls: 'bg-accent-amber/15 text-accent-amber' }
+        ? { label: badgeText ?? 'Partial', cls: 'bg-accent-amber/15 text-accent-amber' }
         : { label: badgeText ?? 'New', cls: 'bg-accent-blue/15 text-accent-blue' };
 
   return (

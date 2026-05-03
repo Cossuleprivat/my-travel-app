@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { GiModernCity } from 'react-icons/gi';
 import { search, type SearchResult } from '@/lib/actions/search';
+import { getContinentIcon } from '@/lib/continentIcon';
 
 export function SearchBar() {
   const [q, setQ] = useState('');
@@ -41,10 +43,11 @@ export function SearchBar() {
               r.kind === 'continent' ? 'Continent' :
               r.kind === 'country'   ? 'Country' :
               `${r.countryName}`;
-            const flag =
-              r.kind === 'continent' ? r.emoji :
-              r.kind === 'country'   ? r.flag :
-              null;
+            const icon = r.kind === 'continent'
+              ? (() => { const I = getContinentIcon(r.slug); return <I className="text-xl text-accent-blue" />; })()
+              : r.kind === 'country'
+                ? <span className="text-xl">{r.flag}</span>
+                : <GiModernCity className="text-xl text-accent-green" />;
             return (
               <li key={`${r.kind}-${r.id}`}>
                 <Link
@@ -52,7 +55,7 @@ export function SearchBar() {
                   onClick={() => { setQ(''); setResults([]); }}
                   className="flex items-center gap-3 p-3 hover:bg-bg-elevated"
                 >
-                  <span className="text-xl">{flag ?? '•'}</span>
+                  <span className="text-xl flex items-center">{icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-text-primary text-sm">{r.name}</div>
                     <div className="text-text-muted text-xs">{subtitle}</div>

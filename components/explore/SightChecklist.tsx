@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition, useState } from 'react';
+import { GiCheckMark } from 'react-icons/gi';
 import { toggleSightCompleted } from '@/lib/actions/visits';
 
 type SightItem = { id: string; title: string; description: string | null; completed: boolean };
@@ -46,7 +47,7 @@ function SightRow({ sight }: { sight: SightItem }) {
           ].join(' ')}
           aria-hidden="true"
         >
-          {done ? '✓' : ''}
+          {done ? <GiCheckMark /> : null}
         </span>
         <div className="flex-1 min-w-0">
           <div className={done ? 'text-text-secondary line-through' : 'text-text-primary'}>

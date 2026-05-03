@@ -7,6 +7,7 @@ import { SearchBar } from '@/components/explore/SearchBar';
 import { Breadcrumb } from '@/components/explore/Breadcrumb';
 import { HierarchyRow } from '@/components/explore/HierarchyRow';
 import { ContinentVisitToggle } from '@/components/explore/ContinentVisitToggle';
+import { getContinentIcon } from '@/lib/continentIcon';
 
 export default async function ContinentPage({
   params,
@@ -29,7 +30,7 @@ export default async function ContinentPage({
         { label: continent.name },
       ]} />
       <header className="flex items-start gap-3">
-        <span className="text-3xl" aria-hidden="true">{continent.emoji ?? '◎'}</span>
+        {(() => { const Icon = getContinentIcon(continent.slug); return <Icon className="text-3xl text-accent-blue" aria-hidden="true" />; })()}
         <div className="flex-1">
           <h1 className="font-sans text-2xl text-text-primary">{continent.name}</h1>
           <p className="text-text-muted text-xs label-mono mt-1">

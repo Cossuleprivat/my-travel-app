@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { listContinents, listCountriesByContinent, getVisitedSets } from '@/lib/data/queries';
 import { requireUserId } from '@/lib/auth/current-user';
 import { SearchBar } from '@/components/explore/SearchBar';
+import { getContinentIcon } from '@/lib/continentIcon';
 
 export default async function ExplorePage() {
   const userId = await requireUserId();
@@ -52,7 +53,7 @@ export default async function ExplorePage() {
                 className={`group block rounded-2xl bg-bg-surface border ${statusColor} shadow-card p-5 lg:p-6 transition-all duration-300`}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <span className="text-4xl lg:text-5xl" aria-hidden="true">{c.emoji ?? '◎'}</span>
+                  {(() => { const Icon = getContinentIcon(c.slug); return <Icon className="text-4xl lg:text-5xl text-accent-blue" aria-hidden="true" />; })()}
                   {isVisited && (
                     <span className="text-xs label-mono text-accent-green bg-accent-green/10 border border-accent-green/30 px-2 py-0.5 rounded-full">
                       ✓ Visited
