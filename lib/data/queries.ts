@@ -202,9 +202,9 @@ export async function getVisitedSets(userId: string): Promise<VisitedSets> {
     sb.from('user_city_visits').select('city_id').eq('user_id', userId),
   ]);
   return {
-    continents: new Set((conts.data ?? []).map((r) => r.continent_id)),
-    countries: new Set((ctrs.data ?? []).map((r) => r.country_id)),
-    cities: new Set((cities.data ?? []).map((r) => r.city_id)),
+    continents: new Set((conts.data ?? []).map((r: { continent_id: string }) => r.continent_id)),
+    countries: new Set((ctrs.data ?? []).map((r: { country_id: string }) => r.country_id)),
+    cities: new Set((cities.data ?? []).map((r: { city_id: string }) => r.city_id)),
   };
 }
 
@@ -215,5 +215,167 @@ export async function listUserAchievements(userId: string): Promise<string[]> {
     .select('achievement')
     .eq('user_id', userId);
   if (error) throw error;
-  return (data ?? []).map((r) => r.achievement);
+  return (data ?? []).map((r: { achievement: string }) => r.achievement);
+}
+
+// ---- Trips ----
+
+export type TripWithStopCount = {
+  id: string;
+  title: string;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  created_at: string;
+  stopCount: number;
+};
+
+export async function listTrips(userId: string): Promise<TripWithStopCount[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('trips')
+    .select('id, title, description, start_date, end_date, status, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  const tripIds = data.map((t: { id: string }) => t.id);
+  const { data: stops } = await sb
+    .from('trip_stops')
+    .select('trip_id')
+    .in('trip_id', tripIds);
+
+  const countMap: Record<string, number> = {};
+  for (const s of stops ?? []) {
+    countMap[s.trip_id] = (countMap[s.trip_id] ?? 0) + 1;
+  }
+
+  return data.map((t: Record<string, unknown> & { id: string }) => ({ ...t, stopCount: countMap[t.id] ?? 0 })) as TripWithStopCount[];
+}
+
+export type TripDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  stops: TripStopDetail[];
+};
+
+export type TripStopDetail = {
+  id: string;
+  trip_id: string;
+  city_id: string;
+  cityName: string;
+  citySlug: string;
+  countryName: string;
+  continentSlug: string;
+  countrySlug: string;
+  position: number;
+  arrival_date: string | null;
+  departure_date: string | null;
+  quests: TripQuestDetail[];
+};
+
+export type TripQuestDetail = {
+  id: string;
+  trip_stop_id: string;
+  quest_id: string;
+  questTitle: string;
+  is_completed: boolean;
+  completed_at: string | null;
+};
+
+export async function getTripDetail(tripId: string, userId: string): Promise<TripDetail | null> {
+  const sb = createServiceClient();
+  const { data: trip, error: tripErr } = await sb
+    .from('trips')
+    .select('id, title, description, start_date, end_date, status')
+    .eq('id', tripId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (tripErr) throw tripErr;
+  if (!trip) return null;
+
+  const { data: stops, error: stopsErr } = await sb
+    .from('trip_stops')
+    .select(`id, trip_id, city_id, position, arrival_date, departure_date,
+      cities!inner(name, slug, countries!inner(name, slug, continents!inner(slug)))`)
+    .eq('trip_id', tripId)
+    .order('position');
+  if (stopsErr) throw stopsErr;
+
+  const stopIds = (stops ?? []).map((s: { id: string }) => s.id);
+  const { data: tripQuests } = await sb
+    .from('trip_quests')
+    .select('id, trip_stop_id, quest_id, is_completed, completed_at, quests!inner(title)')
+    .in('trip_stop_id', stopIds.length > 0 ? stopIds : ['00000000-0000-0000-0000-000000000000']);
+
+  const questsByStop: Record<string, TripQuestDetail[]> = {};
+  for (const tq of tripQuests ?? []) {
+    const detail: TripQuestDetail = {
+      id: tq.id,
+      trip_stop_id: tq.trip_stop_id,
+      quest_id: tq.quest_id,
+      questTitle: (tq as any).quests.title,
+      is_completed: tq.is_completed,
+      completed_at: tq.completed_at,
+    };
+    if (!questsByStop[tq.trip_stop_id]) questsByStop[tq.trip_stop_id] = [];
+    questsByStop[tq.trip_stop_id].push(detail);
+  }
+
+  const stopsDetail: TripStopDetail[] = (stops ?? []).map((s: any) => {
+    const c = (s as any).cities;
+    const ctr = c.countries;
+    const cont = ctr.continents;
+    return {
+      id: s.id,
+      trip_id: s.trip_id,
+      city_id: s.city_id,
+      cityName: c.name,
+      citySlug: c.slug,
+      countryName: ctr.name,
+      countrySlug: ctr.slug,
+      continentSlug: cont.slug,
+      position: s.position,
+      arrival_date: s.arrival_date,
+      departure_date: s.departure_date,
+      quests: questsByStop[s.id] ?? [],
+    };
+  });
+
+  return { ...trip, stops: stopsDetail };
+}
+
+export async function listQuestsForCity(cityId: string): Promise<Quest[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('quests')
+    .select('id, city_id, title, description, category')
+    .eq('city_id', cityId)
+    .eq('is_active', true)
+    .order('title');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getQuestsForTripStop(tripStopId: string): Promise<TripQuestDetail[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('trip_quests')
+    .select('id, trip_stop_id, quest_id, is_completed, completed_at, quests!inner(title)')
+    .eq('trip_stop_id', tripStopId);
+  if (error) throw error;
+  return (data ?? []).map((tq: any) => ({
+    id: tq.id,
+    trip_stop_id: tq.trip_stop_id,
+    quest_id: tq.quest_id,
+    questTitle: tq.quests.title,
+    is_completed: tq.is_completed,
+    completed_at: tq.completed_at,
+  }));
 }

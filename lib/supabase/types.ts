@@ -75,3 +75,39 @@ export type UserAchievement = {
   achievement: string;
   unlocked_at: string;
 };
+
+export type TripStatus = 'draft' | 'planned' | 'in_progress' | 'completed' | 'archived';
+
+export type Trip = {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: TripStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripStop = {
+  id: string;
+  trip_id: string;
+  city_id: string;
+  position: number;
+  arrival_date: string | null;
+  departure_date: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripQuest = {
+  id: string;
+  trip_stop_id: string;
+  quest_id: string;
+  user_id: string;
+  is_completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
