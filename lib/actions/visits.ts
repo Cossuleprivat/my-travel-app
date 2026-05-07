@@ -144,6 +144,29 @@ export async function markCityVisited(input: CityVisitInput) {
   return { alreadyTracked: false };
 }
 
+export async function toggleSightPlanned(questId: string) {
+  const userId = await requireUserId();
+  const sb = createServiceClient();
+
+  const { data: existing } = await sb
+    .from('user_quest_progress')
+    .select('id, status')
+    .eq('user_id', userId).eq('quest_id', questId).maybeSingle();
+
+  if (existing?.status === 'planned') {
+    await sb.from('user_quest_progress').delete().eq('id', existing.id);
+  } else if (existing?.status === 'completed') {
+    return; // already completed — no downgrade
+  } else if (existing) {
+    await sb.from('user_quest_progress').update({ status: 'planned' }).eq('id', existing.id);
+  } else {
+    await sb.from('user_quest_progress').insert({
+      user_id: userId, quest_id: questId, status: 'planned',
+    });
+  }
+  revalidatePath('/explore', 'layout');
+}
+
 export async function toggleSightCompleted(questId: string) {
   const userId = await requireUserId();
   const sb = createServiceClient();

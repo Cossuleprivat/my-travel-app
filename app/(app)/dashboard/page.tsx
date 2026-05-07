@@ -5,6 +5,7 @@ import { requireUserId } from '@/lib/auth/current-user';
 import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
@@ -25,6 +26,8 @@ export default async function DashboardPage() {
         <KpiCard label="Cities"     value={stats.cityCount}     tone="green" />
         <KpiCard label="Sights"     value={stats.sightCount}    tone="purple" />
       </section>
+
+      <QuickActions />
 
       <section>
         <div className="flex items-center justify-between mb-2">

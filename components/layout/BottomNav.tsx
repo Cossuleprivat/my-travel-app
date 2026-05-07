@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: '⌂' },
-  { href: '/explore',   label: 'Explore',   icon: '◎' },
-  { href: '/trips',     label: 'Trips',     icon: '✈' },
-  { href: '/profile',   label: 'Profile',   icon: '◈' },
+  { href: '/dashboard',  label: 'Home',     icon: '⌂' },
+  { href: '/explore',    label: 'Explore',  icon: '◎' },
+  { href: '/my-places',  label: 'Places',   icon: '◉' },
+  { href: '/trips',      label: 'Trips',    icon: '✈' },
+  { href: '/profile',    label: 'Profile',  icon: '◈' },
 ] as const;
 
 export function BottomNav() {
@@ -17,7 +18,7 @@ export function BottomNav() {
       aria-label="Primary"
       className="fixed bottom-0 inset-x-0 z-40 border-t border-border-subtle bg-bg-surface/95 backdrop-blur"
     >
-      <ul className="grid grid-cols-4 max-w-2xl mx-auto">
+      <ul className="grid grid-cols-5 max-w-2xl mx-auto">
         {ITEMS.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/');
           return (

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import {
   getContinentBySlug, getCountryBySlug, getCityBySlug,
-  listSightsForCity, getVisitedSets,
+  listSightsForCity, getVisitedSets, getCityCompletion,
 } from '@/lib/data/queries';
 import { ensureCitySights } from '@/lib/data/wikidata';
 import { createServiceClient } from '@/lib/supabase/server';
@@ -9,6 +9,7 @@ import { requireUserId } from '@/lib/auth/current-user';
 import { Breadcrumb } from '@/components/explore/Breadcrumb';
 import { WarHierButton } from '@/components/explore/WarHierButton';
 import { SightChecklist } from '@/components/explore/SightChecklist';
+import { ProgressRing } from '@/components/ui/ProgressRing';
 
 export default async function CityPage({
   params,
@@ -30,15 +31,20 @@ export default async function CityPage({
   await ensureCitySights(city.id, city.name);
   const sights = await listSightsForCity(city.id);
 
-  // Which sights has the user completed?
+  // Which sights has the user completed or planned?
   const sb = createServiceClient();
-  const { data: completed } = await sb
+  const { data: progress } = await sb
     .from('user_quest_progress')
-    .select('quest_id')
-    .eq('user_id', userId).eq('status', 'completed');
-  const completedSet = new Set((completed ?? []).map((c) => c.quest_id));
+    .select('quest_id, status')
+    .eq('user_id', userId)
+    .in('status', ['completed', 'planned']);
+  const completedSet = new Set((progress ?? []).filter((c: { status: string }) => c.status === 'completed').map((c: { quest_id: string }) => c.quest_id));
+  const plannedSet   = new Set((progress ?? []).filter((c: { status: string }) => c.status === 'planned').map((c: { quest_id: string }) => c.quest_id));
 
-  const visited = await getVisitedSets(userId);
+  const [visited, completion] = await Promise.all([
+    getVisitedSets(userId),
+    getCityCompletion(city.id, userId),
+  ]);
   const alreadyTracked = visited.cities.has(city.id);
 
   return (
@@ -58,6 +64,16 @@ export default async function CityPage({
             {country.name} · {continent.name} · {sights.length} sights
           </p>
         </div>
+        {completion.totalSights > 0 && (
+          <ProgressRing
+            pct={completion.pct}
+            size={52}
+            stroke={4}
+            color="#a060e0"
+            label={`${completion.pct}%`}
+            sublabel="done"
+          />
+        )}
       </header>
 
       <WarHierButton cityId={city.id} alreadyTracked={alreadyTracked} />
@@ -70,6 +86,7 @@ export default async function CityPage({
             title: s.title,
             description: s.description,
             completed: completedSet.has(s.id),
+            planned: plannedSet.has(s.id),
           }))}
         />
       </section>

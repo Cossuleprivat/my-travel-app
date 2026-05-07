@@ -379,3 +379,122 @@ export async function getQuestsForTripStop(tripStopId: string): Promise<TripQues
     completed_at: tq.completed_at,
   }));
 }
+
+// ---- Completion Calculations (T6.1) ----
+
+export type CityCompletion = {
+  cityId: string;
+  totalSights: number;
+  completedSights: number;
+  plannedSights: number;
+  pct: number;
+};
+
+export async function getCityCompletion(cityId: string, userId: string): Promise<CityCompletion> {
+  const sb = createServiceClient();
+  const [{ count: total }, { data: progress }] = await Promise.all([
+    sb.from('quests').select('id', { count: 'exact', head: true })
+      .eq('city_id', cityId).eq('is_active', true),
+    sb.from('user_quest_progress')
+      .select('status, quests!inner(city_id)')
+      .eq('user_id', userId)
+      .eq('quests.city_id' as any, cityId),
+  ]);
+  const completed = (progress ?? []).filter((r: any) => r.status === 'completed').length;
+  const planned   = (progress ?? []).filter((r: any) => r.status === 'planned').length;
+  const totalN    = total ?? 0;
+  return {
+    cityId,
+    totalSights: totalN,
+    completedSights: completed,
+    plannedSights: planned,
+    pct: totalN > 0 ? Math.round((completed / totalN) * 100) : 0,
+  };
+}
+
+export type GlobalCompletion = {
+  cities: { visited: number; total: number; pct: number };
+  countries: { visited: number; total: number; pct: number };
+  continents: { visited: number; total: number };
+  sights: { completed: number };
+};
+
+export async function getGlobalCompletion(userId: string): Promise<GlobalCompletion> {
+  const sb = createServiceClient();
+  const [
+    { count: totalCities },
+    { count: totalCountries },
+    { count: visitedCities },
+    { count: visitedCountries },
+    { count: visitedContinents },
+    { count: sightsCompleted },
+  ] = await Promise.all([
+    sb.from('cities').select('id', { count: 'exact', head: true }),
+    sb.from('countries').select('id', { count: 'exact', head: true }),
+    sb.from('user_city_visits').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    sb.from('user_country_visits').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    sb.from('user_continent_visits').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    sb.from('user_quest_progress').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('status', 'completed'),
+  ]);
+  const tc = totalCities ?? 0;
+  const tco = totalCountries ?? 0;
+  const vc = visitedCities ?? 0;
+  const vco = visitedCountries ?? 0;
+  return {
+    cities:     { visited: vc,  total: tc,  pct: tc  > 0 ? Math.round((vc  / tc)  * 100) : 0 },
+    countries:  { visited: vco, total: tco, pct: tco > 0 ? Math.round((vco / tco) * 100) : 0 },
+    continents: { visited: visitedContinents ?? 0, total: 7 },
+    sights:     { completed: sightsCompleted ?? 0 },
+  };
+}
+
+export type VisitedPlaceRow = {
+  kind: 'city' | 'country';
+  id: string;
+  name: string;
+  subLabel: string;
+  slug: string;
+  parentSlug: string;
+  continentSlug: string;
+  visitedAt: string;
+};
+
+export async function listVisitedPlaces(userId: string, limit = 100): Promise<VisitedPlaceRow[]> {
+  const sb = createServiceClient();
+  const [cities, countries] = await Promise.all([
+    sb.from('user_city_visits')
+      .select('id, created_at, cities!inner(name, slug, countries!inner(name, slug, continents!inner(slug)))')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    sb.from('user_country_visits')
+      .select('id, visited_at, countries!inner(name, slug, continents!inner(name, slug))')
+      .eq('user_id', userId)
+      .order('visited_at', { ascending: false })
+      .limit(limit),
+  ]);
+  const rows: VisitedPlaceRow[] = [];
+  for (const r of cities.data ?? []) {
+    const city = (r as any).cities;
+    const country = city.countries;
+    const cont = country.continents;
+    rows.push({
+      kind: 'city', id: r.id, name: city.name,
+      subLabel: country.name, slug: city.slug,
+      parentSlug: country.slug, continentSlug: cont.slug,
+      visitedAt: r.created_at,
+    });
+  }
+  for (const r of countries.data ?? []) {
+    const country = (r as any).countries;
+    const cont = country.continents;
+    rows.push({
+      kind: 'country', id: r.id, name: country.name,
+      subLabel: cont.name, slug: country.slug,
+      parentSlug: cont.slug, continentSlug: cont.slug,
+      visitedAt: r.visited_at,
+    });
+  }
+  return rows.sort((a, b) => (a.visitedAt < b.visitedAt ? 1 : -1)).slice(0, limit);
+}
