@@ -1,10 +1,31 @@
 # Build Sprint Tickets (Sprint 1-10)
 
+## IMPLEMENTIERUNGSSTAND (Stand: 2026-05-05)
+> Branch: claude/roadmap-implementation-eyPM4
+> Letzter Commit: feat(sprints 6-8): trips planner, progress rings, onboarding wizard
+
+### Abgeschlossen ✅
+- Sprint 1 (Foundation): App shell, routing, design tokens
+- Sprint 2 (Auth): Real Supabase email/password auth + cookie sessions
+- Sprint 3 (Geography Tracking): City/country/continent visits, XP, achievements
+- Sprint 4 (Dashboard + Explore): Dashboard KPIs, Explore hierarchy, city pages
+- Sprint 5 (Quest Engine): Sights checklist on city pages, quest progress toggles
+- Sprint 6 (Progress + Rewards): ProgressRing component, XP toast, level bar
+- Sprint 7 (Trips Core): Trip CRUD, stops timeline, trip detail page
+- Sprint 8 (Quest Planner): Quest attachment to stops, plan-vs-done toggle, progress bar
+- T2.3 Onboarding Wizard: display name, interests, home city
+
+### Nächster Start: Sprint 9 + 10 (Stabilisierung + Release)
+> Beim nächsten Session-Start mit Sprint 9 (T9.1-T9.3) beginnen, dann Sprint 10 (T10.1-T10.4).
+
+---
+
 ## GLOBALE ENTSCHEIDUNG: AUTH BYPASS (Feature-First-Development)
 > Auth (T1.2, T2.1, T2.2, T2.3) wird zurueckgestellt.
 > Login-Buttons leiten aktuell direkt zum Dashboard. Alle App-Routen sind ohne Login erreichbar.
 > Auth wird nach Fertigstellung aller App-Features implementiert und aktiviert.
 > Details und Reactivation Checklist: `docs/auth-guard-approach.md`
+> T2.3 Onboarding Wizard ist implementiert (wartet auf T2.1 Auth-Seiten-Integration).
 
 ---
 

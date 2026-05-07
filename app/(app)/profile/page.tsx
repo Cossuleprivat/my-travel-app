@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
@@ -36,6 +37,25 @@ export default async function ProfilePage() {
           </p>
         )}
         <SignOutButton />
+      </section>
+
+      <section className="rounded-xl bg-bg-surface border border-border-subtle p-4 space-y-2">
+        <h2 className="text-xs label-mono text-text-muted">Admin</h2>
+        <div className="flex flex-col gap-1.5">
+          {([
+            { href: '/admin', label: 'Data Ops & Import Jobs' },
+            { href: '/admin/rls-audit', label: 'RLS Audit' },
+            { href: '/admin/release-checklist', label: 'Release Checklist' },
+          ] as { href: string; label: string }[]).map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm text-accent-blue hover:underline"
+            >
+              {link.label} →
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
