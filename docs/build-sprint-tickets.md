@@ -1,22 +1,29 @@
 # Build Sprint Tickets (Sprint 1-10)
 
-## IMPLEMENTIERUNGSSTAND (Stand: 2026-05-05)
+## IMPLEMENTIERUNGSSTAND (Stand: 2026-05-07)
 > Branch: claude/roadmap-implementation-eyPM4
-> Letzter Commit: feat(sprints 6-8): trips planner, progress rings, onboarding wizard
+> Letzter Commit: feat(T4.1/T4.3/T5.3/T6.1/T9.3): places list, quick actions, planned quests...
 
-### Abgeschlossen ✅
+### Abgeschlossen ✅ (ALLE SPRINTS)
 - Sprint 1 (Foundation): App shell, routing, design tokens
 - Sprint 2 (Auth): Real Supabase email/password auth + cookie sessions
 - Sprint 3 (Geography Tracking): City/country/continent visits, XP, achievements
-- Sprint 4 (Dashboard + Explore): Dashboard KPIs, Explore hierarchy, city pages
-- Sprint 5 (Quest Engine): Sights checklist on city pages, quest progress toggles
-- Sprint 6 (Progress + Rewards): ProgressRing component, XP toast, level bar
+- Sprint 4 (Dashboard + Explore): Dashboard KPIs, QuickActions, /my-places list
+- Sprint 5 (Quest Engine): Sights checklist + planned state (☆/★) + completed toggle
+- Sprint 6 (Progress + Rewards): ProgressRing, XP toast, completion % on city page
 - Sprint 7 (Trips Core): Trip CRUD, stops timeline, trip detail page
-- Sprint 8 (Quest Planner): Quest attachment to stops, plan-vs-done toggle, progress bar
+- Sprint 8 (Quest Planner): Quest attachment, plan-vs-done, trip progress bar
+- Sprint 9 (Data Ops): Admin panel, import runbook, T9.3 validation enforcement
+- Sprint 10 (Release): RLS audit, performance indexes (0009), release checklist
 - T2.3 Onboarding Wizard: display name, interests, home city
 
-### Nächster Start: Sprint 9 + 10 (Stabilisierung + Release)
-> Beim nächsten Session-Start mit Sprint 9 (T9.1-T9.3) beginnen, dann Sprint 10 (T10.1-T10.4).
+### Offene Punkte (v1.1 Backlog)
+- T10.1: E2E test suite in CI (manuelle QA derzeit)
+- Social login (OAuth deferred)
+- Map view (Karten-Widget deferred)
+- Admin-only RLS für import_jobs
+- Quest submissions Moderation-UI
+- TypeScript strict mode / React 19 TS-Config (pre-existing env issue)
 
 ---
 
