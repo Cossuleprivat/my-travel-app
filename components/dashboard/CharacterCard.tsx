@@ -1,4 +1,5 @@
 import { PixelSprite } from '@/components/ui/PixelSprite';
+import { ProgressRing } from '@/components/ui/ProgressRing';
 import type { LevelBreakdown } from '@/lib/xp';
 
 export function CharacterCard({
@@ -7,7 +8,17 @@ export function CharacterCard({
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle p-5">
       <div className="flex items-center gap-4">
-        <PixelSprite size="md" />
+        <div className="relative">
+          <PixelSprite size="md" />
+          <div className="absolute -bottom-2 -right-2">
+            <ProgressRing
+              pct={level.progressPct}
+              size={32}
+              stroke={3}
+              color="#d48030"
+            />
+          </div>
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs label-mono text-text-muted">Lvl {level.level}</p>
           <h2 className="font-mono text-lg uppercase tracking-wider truncate">{name}</h2>
@@ -22,7 +33,7 @@ export function CharacterCard({
         </div>
         <div className="h-2 bg-bg-elevated rounded mt-1 overflow-hidden">
           <div
-            className="h-full bg-accent-amber"
+            className="h-full bg-accent-amber transition-all duration-500"
             style={{ width: `${Math.min(100, level.progressPct)}%` }}
           />
         </div>

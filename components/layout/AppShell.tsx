@@ -1,4 +1,5 @@
 import { BottomNav } from './BottomNav';
+import { XpToastProvider } from '@/components/ui/XpToast';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <BottomNav />
+      <XpToastProvider />
     </div>
   );
 }

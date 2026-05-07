@@ -5,6 +5,8 @@ export const XP_EVENTS = {
   sightCompleted: 5,
   dateBonus: 3,
   noteBonus: 2,
+  tripCreated: 20,
+  tripStopAdded: 5,
 } as const;
 
 export type LevelTier = {
