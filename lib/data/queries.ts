@@ -117,7 +117,7 @@ export async function ensureUserProfile(userId: string): Promise<UserProfile> {
   const sb = createServiceClient();
   const { data: existing } = await sb
     .from('user_profiles')
-    .select('id, display_name, home_city_id, travel_interests, xp_total, level')
+    .select('id, display_name, home_city_id, travel_interests, xp_total, level, avatar_url, avatar_generated_at, avatar_generation_month, avatar_generation_count')
     .eq('id', userId)
     .maybeSingle();
   if (existing) return existing as UserProfile;
@@ -125,7 +125,7 @@ export async function ensureUserProfile(userId: string): Promise<UserProfile> {
   const { data, error } = await sb
     .from('user_profiles')
     .insert({ id: userId, display_name: 'Traveler', travel_interests: [] })
-    .select('id, display_name, home_city_id, travel_interests, xp_total, level')
+    .select('id, display_name, home_city_id, travel_interests, xp_total, level, avatar_url, avatar_generated_at, avatar_generation_month, avatar_generation_count')
     .single();
   if (error) throw error;
   return data as UserProfile;

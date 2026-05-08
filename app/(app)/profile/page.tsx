@@ -1,6 +1,8 @@
+// app/(app)/profile/page.tsx
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
+import { getAvatarSignedUrl } from '@/lib/avatar/storage';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { CustomizationSlots } from '@/components/profile/CustomizationSlots';
 import { AchievementsStrip } from '@/components/profile/AchievementsStrip';
@@ -11,10 +13,11 @@ export default async function ProfilePage() {
   const userId = await requireUserId();
   const sb = await createCookieClient();
   const { data: { user } } = await sb.auth.getUser();
-  const profile = await ensureUserProfile(userId);
-  const [stats, ach] = await Promise.all([
+  const [profile, stats, ach, avatarUrl] = await Promise.all([
+    ensureUserProfile(userId),
     getUserStats(userId),
     listUserAchievements(userId),
+    getAvatarSignedUrl(userId),
   ]);
   const level = calcLevel(stats.xpTotal);
 
@@ -24,6 +27,7 @@ export default async function ProfilePage() {
         name={profile.display_name ?? 'Traveler'}
         level={level}
         stats={{ continents: stats.continentCount, countries: stats.countryCount, cities: stats.cityCount }}
+        avatarUrl={avatarUrl}
       />
       <CustomizationSlots />
       <AchievementsStrip unlocked={new Set(ach)} />

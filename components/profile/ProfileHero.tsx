@@ -1,16 +1,21 @@
-import { PixelSprite } from '@/components/ui/PixelSprite';
+// components/profile/ProfileHero.tsx
+import Link from 'next/link';
+import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import type { LevelBreakdown } from '@/lib/xp';
 
 export function ProfileHero({
-  name, level, stats,
+  name, level, stats, avatarUrl,
 }: {
   name: string;
   level: LevelBreakdown;
   stats: { continents: number; countries: number; cities: number };
+  avatarUrl: string | null;
 }) {
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle p-6 text-center">
-      <PixelSprite size="lg" />
+      <div className="flex justify-center">
+        <AvatarDisplay avatarUrl={avatarUrl} name={name} size="lg" />
+      </div>
       <h1 className="mt-4 font-mono uppercase tracking-wider text-xl">{name}</h1>
       <p className="text-accent-amber text-xs label-mono mt-1">
         Lvl {level.level} · {level.title}
@@ -39,6 +44,13 @@ export function ProfileHero({
           <div className="text-text-muted">Cities</div>
         </div>
       </div>
+
+      <Link
+        href="/profile/avatar"
+        className="inline-block mt-4 text-xs label-mono text-accent-blue hover:underline"
+      >
+        {avatarUrl ? 'Avatar ändern →' : 'Pixel-Avatar erstellen →'}
+      </Link>
     </section>
   );
 }
