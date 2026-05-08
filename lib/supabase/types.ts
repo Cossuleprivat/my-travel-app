@@ -67,6 +67,10 @@ export type UserProfile = {
   travel_interests: string[];
   xp_total: number;
   level: number;
+  avatar_url: string | null;
+  avatar_generated_at: string | null;
+  avatar_generation_month: number | null;
+  avatar_generation_count: number;
 };
 
 export type UserAchievement = {
