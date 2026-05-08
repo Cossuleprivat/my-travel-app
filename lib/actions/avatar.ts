@@ -71,9 +71,15 @@ export async function generateAvatarAction(
   if (updateError) return { success: false, error: 'Profil konnte nicht aktualisiert werden.' };
 
   // Rate-Limit-Zähler erhöhen
-  await consumeAvatarGeneration(userId);
+  try {
+    await consumeAvatarGeneration(userId);
+  } catch {
+    // Profile was saved — non-fatal, counter update failure just means
+    // the limit won't be enforced this cycle.
+  }
 
   revalidatePath('/profile');
+  revalidatePath('/profile/avatar');
   revalidatePath('/dashboard');
 
   return { success: true, avatarUrl: generatedUrl };

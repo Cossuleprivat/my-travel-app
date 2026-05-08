@@ -25,11 +25,15 @@ export function AvatarUploader({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    setPreview(url);
     setErrorMsg(null);
   }
 
@@ -42,7 +46,8 @@ export function AvatarUploader({
         setErrorMsg(result.error);
       } else {
         formRef.current?.reset();
-        setPreview(null);
+        // Show the freshly generated avatar immediately while RSC rerenders
+        setPreview(result.avatarUrl);
       }
     });
   }
