@@ -2,7 +2,7 @@
 
 -- 1. Avatar-Felder zur user_profiles Tabelle hinzufügen
 alter table public.user_profiles
-  add column if not exists avatar_url           text,
+  add column if not exists avatar_url           text,                           -- storage path, e.g. "<user_id>/avatar.png"
   add column if not exists avatar_generated_at  timestamptz,
   add column if not exists avatar_generation_month integer,   -- Format: YYYYMM z.B. 202605
   add column if not exists avatar_generation_count integer not null default 0;
@@ -18,6 +18,7 @@ values (
 ) on conflict (id) do nothing;
 
 -- 3. RLS Policies für den Bucket
+drop policy if exists "users_can_upload_own_avatar" on storage.objects;
 create policy "users_can_upload_own_avatar"
   on storage.objects for insert
   with check (
@@ -25,6 +26,7 @@ create policy "users_can_upload_own_avatar"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "users_can_read_own_avatar" on storage.objects;
 create policy "users_can_read_own_avatar"
   on storage.objects for select
   using (
@@ -32,13 +34,19 @@ create policy "users_can_read_own_avatar"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "users_can_update_own_avatar" on storage.objects;
 create policy "users_can_update_own_avatar"
   on storage.objects for update
   using (
     bucket_id = 'avatars'
     and auth.uid()::text = (storage.foldername(name))[1]
+  )
+  with check (
+    bucket_id = 'avatars'
+    and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "users_can_delete_own_avatar" on storage.objects;
 create policy "users_can_delete_own_avatar"
   on storage.objects for delete
   using (
