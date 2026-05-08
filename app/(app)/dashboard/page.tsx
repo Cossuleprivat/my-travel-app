@@ -17,7 +17,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <CharacterCard name={profile.display_name ?? 'Traveler'} level={level} />
+      <CharacterCard
+        name={profile.display_name ?? 'Traveler'}
+        level={level}
+        avatarUrl={profile.avatar_url ?? null}
+      />
 
       <section className="grid grid-cols-2 gap-3">
         <KpiCard label="Continents" value={stats.continentCount} total={7}    tone="blue" />

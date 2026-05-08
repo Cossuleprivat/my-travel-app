@@ -1,15 +1,20 @@
-import { PixelSprite } from '@/components/ui/PixelSprite';
+// components/dashboard/CharacterCard.tsx
+import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import type { LevelBreakdown } from '@/lib/xp';
 
 export function CharacterCard({
-  name, level,
-}: { name: string; level: LevelBreakdown }) {
+  name, level, avatarUrl,
+}: {
+  name: string;
+  level: LevelBreakdown;
+  avatarUrl: string | null;
+}) {
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle p-5">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <PixelSprite size="md" />
+          <AvatarDisplay avatarUrl={avatarUrl} name={name} size="md" />
           <div className="absolute -bottom-2 -right-2">
             <ProgressRing
               pct={level.progressPct}
