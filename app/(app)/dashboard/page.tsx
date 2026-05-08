@@ -2,22 +2,28 @@ import Link from 'next/link';
 import { getUserStats, listRecentActivity, ensureUserProfile } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
+import { getAvatarSignedUrl } from '@/lib/avatar/storage';
 import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
-  const profile = await ensureUserProfile(userId);
-  const [stats, recent] = await Promise.all([
+  const [profile, stats, recent, avatarUrl] = await Promise.all([
+    ensureUserProfile(userId),
     getUserStats(userId),
     listRecentActivity(userId, 6),
+    getAvatarSignedUrl(userId),
   ]);
   const level = calcLevel(stats.xpTotal);
 
   return (
     <div className="space-y-5">
-      <CharacterCard name={profile.display_name ?? 'Traveler'} level={level} />
+      <CharacterCard
+        name={profile.display_name ?? 'Traveler'}
+        level={level}
+        avatarUrl={avatarUrl}
+      />
 
       <section className="grid grid-cols-2 gap-3">
         <KpiCard label="Continents" value={stats.continentCount} total={7}    tone="blue" />
