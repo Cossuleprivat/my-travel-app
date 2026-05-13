@@ -9,6 +9,7 @@ import {
   type AchievementId,
 } from '@/lib/achievements';
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
+import { checkAndGrantNewItems } from '@/lib/actions/items';
 
 async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
   const sb = createServiceClient();
@@ -39,6 +40,9 @@ async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
     const { error: achErr } = await sb.from('user_achievements').insert(rows);
     if (achErr) throw achErr;
   }
+
+  // Unlock any items the user now qualifies for (fire-and-forget, non-blocking)
+  checkAndGrantNewItems(userId).catch(() => {});
 
   return { xpTotal: newXp, level: newLevel, newAchievements: newOnes as AchievementId[] };
 }

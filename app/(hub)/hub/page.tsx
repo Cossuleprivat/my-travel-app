@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { requireUserId } from '@/lib/auth/current-user';
-import { ensureUserProfile } from '@/lib/data/queries';
+import { ensureUserProfile, getUserStats } from '@/lib/data/queries';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
+import { calcLevel } from '@/lib/xp';
 import { MODULE_REGISTRY } from '@/modules/registry';
 import type { LiveOSModule } from '@/modules/types';
 
@@ -14,14 +15,16 @@ const COLOR_MAP: Record<string, { border: string; accent: string; badge: string 
   red:    { border: 'border-red-400/30',        accent: 'text-red-400',        badge: 'bg-red-400/10 text-red-400' },
 };
 
-function ModuleCard({ mod }: { mod: LiveOSModule }) {
+type ModuleStats = { headline: string; subline: string } | null;
+
+function ModuleCard({ mod, stats }: { mod: LiveOSModule; stats: ModuleStats }) {
   const colors = COLOR_MAP[mod.color] ?? COLOR_MAP.blue;
   const isActive = mod.status === 'active';
 
   const card = (
     <div
       className={[
-        'rounded-xl bg-bg-surface border p-4 space-y-3 transition-colors',
+        'rounded-xl bg-bg-surface border p-4 transition-colors',
         isActive ? `${colors.border} hover:bg-bg-elevated` : 'border-border-subtle opacity-60',
       ].join(' ')}
     >
@@ -30,7 +33,14 @@ function ModuleCard({ mod }: { mod: LiveOSModule }) {
           <span className="text-2xl leading-none" aria-hidden="true">{mod.icon}</span>
           <div>
             <h2 className="text-text-primary font-medium text-sm">{mod.name}</h2>
-            <p className="text-text-muted text-xs mt-0.5">{mod.tagline}</p>
+            {stats ? (
+              <>
+                <p className={`text-xs font-medium mt-0.5 ${colors.accent}`}>{stats.headline}</p>
+                <p className="text-text-muted text-xs">{stats.subline}</p>
+              </>
+            ) : (
+              <p className="text-text-muted text-xs mt-0.5">{mod.tagline}</p>
+            )}
           </div>
         </div>
         {!isActive && (
@@ -39,7 +49,7 @@ function ModuleCard({ mod }: { mod: LiveOSModule }) {
           </span>
         )}
         {isActive && (
-          <span className={`text-[10px] label-mono px-1.5 py-0.5 rounded ${colors.badge}`}>
+          <span className={`text-[10px] label-mono px-1.5 py-0.5 rounded ${colors.badge} whitespace-nowrap`}>
             Active
           </span>
         )}
@@ -53,10 +63,20 @@ function ModuleCard({ mod }: { mod: LiveOSModule }) {
 
 export default async function HubPage() {
   const userId = await requireUserId();
-  const [profile, avatarUrl] = await Promise.all([
+  const [profile, avatarUrl, travelStats] = await Promise.all([
     ensureUserProfile(userId),
     getAvatarSignedUrl(userId),
+    getUserStats(userId),
   ]);
+
+  const level = calcLevel(travelStats.xpTotal);
+
+  const moduleStats: Record<string, ModuleStats> = {
+    travel: {
+      headline: `Level ${level.level} Explorer`,
+      subline: `${travelStats.countryCount} countries · ${travelStats.cityCount} cities · ${travelStats.sightCount} quests`,
+    },
+  };
 
   return (
     <div className="space-y-6">
@@ -86,7 +106,7 @@ export default async function HubPage() {
         <h2 className="text-xs label-mono text-text-muted">Modules</h2>
         <div className="space-y-2">
           {MODULE_REGISTRY.map((mod) => (
-            <ModuleCard key={mod.id} mod={mod} />
+            <ModuleCard key={mod.id} mod={mod} stats={moduleStats[mod.id] ?? null} />
           ))}
         </div>
       </section>

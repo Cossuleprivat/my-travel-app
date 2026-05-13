@@ -1,5 +1,5 @@
 // app/(app)/profile/page.tsx
-import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
+import { ensureUserProfile, getUserStats, listUserAchievements, getUserItems, getEquippedItems } from '@/lib/data/queries';
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
@@ -13,11 +13,13 @@ export default async function ProfilePage() {
   const userId = await requireUserId();
   const sb = await createCookieClient();
   const { data: { user } } = await sb.auth.getUser();
-  const [profile, stats, ach, avatarUrl] = await Promise.all([
+  const [profile, stats, ach, avatarUrl, userItems, equipped] = await Promise.all([
     ensureUserProfile(userId),
     getUserStats(userId),
     listUserAchievements(userId),
     getAvatarSignedUrl(userId),
+    getUserItems(userId),
+    getEquippedItems(userId),
   ]);
   const level = calcLevel(stats.xpTotal);
 
@@ -29,7 +31,7 @@ export default async function ProfilePage() {
         stats={{ continents: stats.continentCount, countries: stats.countryCount, cities: stats.cityCount }}
         avatarUrl={avatarUrl}
       />
-      <CustomizationSlots />
+      <CustomizationSlots equipped={equipped} unlockedItems={userItems.map((ui) => ui.item)} />
       <AchievementsStrip unlocked={new Set(ach)} />
 
       <section className="rounded-xl bg-bg-surface border border-border-subtle p-4 space-y-3">

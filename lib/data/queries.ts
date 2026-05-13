@@ -379,3 +379,45 @@ export async function getQuestsForTripStop(tripStopId: string): Promise<TripQues
     completed_at: tq.completed_at,
   }));
 }
+
+// ---------------------------------------------------------------------------
+// Items
+// ---------------------------------------------------------------------------
+
+import type { Item, UserItem, EquippedItems } from '@/lib/items/types';
+
+export async function getItemCatalog(): Promise<Item[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('items')
+    .select('*')
+    .order('category')
+    .order('layer');
+  if (error) throw error;
+  return (data ?? []) as Item[];
+}
+
+export async function getUserItems(userId: string): Promise<UserItem[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('user_items')
+    .select('item_id, unlocked_at, items(*)')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    item_id: r.item_id,
+    unlocked_at: r.unlocked_at,
+    item: r.items as Item,
+  }));
+}
+
+export async function getEquippedItems(userId: string): Promise<EquippedItems> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from('user_profiles')
+    .select('equipped_items')
+    .eq('id', userId)
+    .single();
+  if (error) return {};
+  return (data?.equipped_items as EquippedItems) ?? {};
+}
