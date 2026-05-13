@@ -2,7 +2,8 @@
 import 'server-only';
 import { createServiceClient } from '@/lib/supabase/server';
 
-const FREE_GENS_PER_MONTH = 2; // 1 regulär + 1 Retry
+// Personal LiveOS: no commercial limits needed
+const FREE_GENS_PER_MONTH = 99;
 
 export type RateLimitStatus = {
   canGenerate: boolean;
