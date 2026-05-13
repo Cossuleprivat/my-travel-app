@@ -37,8 +37,9 @@ next-env.d.ts
 # Superpowers brainstorm sessions
 .superpowers/
 
-# Claude Code memory & settings
+# Claude Code memory & settings (but track skills)
 .claude/
+!.claude/skills/
 
 # Cursor settings
 .cursor/
