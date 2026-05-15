@@ -2,9 +2,9 @@ export default function OfflinePage() {
   return (
     <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center p-8 text-center">
       <div className="text-6xl mb-6">✈</div>
-      <h1 className="font-sans text-2xl text-text-primary mb-2">You're offline</h1>
+      <h1 className="font-sans text-2xl text-text-primary mb-2">Du bist offline</h1>
       <p className="text-text-muted text-sm max-w-xs">
-        No connection detected. Your trips and progress are saved — check back when you're online.
+        Keine Verbindung. Deine Daten sind gespeichert — versuch es wieder wenn du online bist.
       </p>
       <button
         onClick={() => window.location.reload()}
