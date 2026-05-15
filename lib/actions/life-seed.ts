@@ -187,6 +187,80 @@ export async function seedTasks(userId: string) {
   return { seeded: true };
 }
 
+const ZEITLEKTUREN = [
+  { nr: 1,  titel: 'Frühgeschichte & Antike Hochkulturen',  zeitraum: 'ca. 3500–500 v. Chr.' },
+  { nr: 2,  titel: 'Klassische Antike — Griechenland & Rom', zeitraum: 'ca. 800 v. Chr. – 476 n. Chr.' },
+  { nr: 3,  titel: 'Spätantike & Frühes Mittelalter',        zeitraum: 'ca. 300–1000 n. Chr.' },
+  { nr: 4,  titel: 'Hochmittelalter',                        zeitraum: 'ca. 1000–1300' },
+  { nr: 5,  titel: 'Spätmittelalter & Übergang',             zeitraum: 'ca. 1300–1400' },
+  { nr: 6,  titel: 'Frührenaissance',                        zeitraum: 'ca. 1400–1480' },
+  { nr: 7,  titel: 'Hochrenaissance & Manierismus',          zeitraum: 'ca. 1480–1550' },
+  { nr: 8,  titel: 'Reformation & Gegenreformation',         zeitraum: 'ca. 1517–1650' },
+  { nr: 9,  titel: 'Barock',                                 zeitraum: 'ca. 1600–1750' },
+  { nr: 10, titel: 'Aufklärung',                             zeitraum: 'ca. 1680–1800' },
+  { nr: 11, titel: 'Klassizismus & Romantik',                zeitraum: 'ca. 1780–1850' },
+  { nr: 12, titel: 'Realismus & Industrialisierung',         zeitraum: 'ca. 1840–1890' },
+  { nr: 13, titel: 'Jugendstil & Symbolismus',               zeitraum: 'ca. 1890–1910' },
+  { nr: 14, titel: 'Klassische Moderne I — Expressionismus & Kubismus', zeitraum: 'ca. 1905–1930' },
+  { nr: 15, titel: 'Klassische Moderne II — Bauhaus & Neue Sachlichkeit', zeitraum: 'ca. 1919–1939' },
+  { nr: 16, titel: 'Nachkriegsmoderne & Abstrakte Kunst',    zeitraum: 'ca. 1945–1975' },
+  { nr: 17, titel: 'Postmoderne bis Gegenwart',              zeitraum: 'ca. 1970 – heute' },
+];
+
+function zeitlekturContent(zeitraum: string) {
+  return `# Zeitraum: ${zeitraum}
+
+## 🌍 Weltgeschichte
+_Wichtige Ereignisse, Reiche, politische Umbrüche..._
+
+---
+
+## 📖 Literatur
+_Bedeutende Werke, Autoren, literarische Strömungen..._
+
+---
+
+## 🎨 Kunst
+_Stile, Künstler, Meisterwerke, visuelle Merkmale..._
+
+---
+
+## 🏛️ Architektur
+_Baustile, Gebäude, Baumaterialien, Raumkonzepte..._
+
+---
+
+## 🎵 Musik & Kultur
+_Musikformen, Komponisten, kulturelle Besonderheiten..._
+
+---
+
+## 💡 Meine Erkenntnisse
+_Was hat mich überrascht? Was nehme ich mit?_
+`;
+}
+
+export async function seedWiki(userId: string) {
+  const sb = createServiceClient();
+  const { count } = await sb.from('user_notes').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+  if ((count ?? 0) > 0) return { seeded: false };
+
+  const notes = ZEITLEKTUREN.map((l, i) => ({
+    user_id: userId,
+    title: `L${l.nr} — ${l.titel}`,
+    category: 'zeitlektur',
+    content: zeitlekturContent(l.zeitraum),
+    lektion_nr: l.nr,
+    lektion_zeitraum: l.zeitraum,
+    is_pinned: l.nr === 1,
+    sort_order: i + 1,
+  }));
+
+  const { error } = await sb.from('user_notes').insert(notes);
+  if (error) throw error;
+  return { seeded: true };
+}
+
 export async function seedAllFromNotion(userId: string) {
   const [goals, games, books, finance, wedding] = await Promise.all([
     seedGoals(userId),

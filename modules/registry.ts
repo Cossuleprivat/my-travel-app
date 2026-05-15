@@ -74,6 +74,16 @@ export const MODULE_REGISTRY: LiveOSModule[] = [
     status: 'active',
   },
   {
+    id: 'wiki',
+    name: 'Wissensbase',
+    tagline: 'Cossu Enzyklopädie · Zeitlektüren L1–L17',
+    icon: '📚',
+    color: 'amber',
+    href: '/wiki',
+    profileDataHref: '/api/modules/wiki/profile-data',
+    status: 'active',
+  },
+  {
     id: 'coaching',
     name: 'Coaching',
     tagline: 'Projekte, Klienten & Fortschritt',

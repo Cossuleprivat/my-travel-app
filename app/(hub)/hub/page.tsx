@@ -74,6 +74,7 @@ async function getLifeModuleStats(userId: string) {
     { data: weddingTasks },
     { data: goals },
     { data: openTasks },
+    { data: wikiNotes },
   ] = await Promise.all([
     sb.from('user_run_logs').select('distance_km').eq('user_id', userId),
     sb.from('user_games').select('status').eq('user_id', userId).eq('year', 2026),
@@ -82,6 +83,7 @@ async function getLifeModuleStats(userId: string) {
     sb.from('wedding_tasks').select('status').eq('user_id', userId),
     sb.from('user_goals').select('status, xp_reward').eq('user_id', userId).eq('year', 2026),
     sb.from('user_tasks').select('status').eq('user_id', userId),
+    sb.from('user_notes').select('category, lektion_nr').eq('user_id', userId),
   ]);
 
   const totalKm = (runLogs ?? []).reduce((s, r) => s + Number(r.distance_km ?? 0), 0);
@@ -137,6 +139,12 @@ async function getLifeModuleStats(userId: string) {
       const remaining = tArr.filter((t) => t.status !== 'done').length;
       const done = tArr.filter((t) => t.status === 'done').length;
       return { headline: `${remaining} offen`, subline: `${done}/${tArr.length} erledigt` };
+    })(),
+    wiki: (() => {
+      const wArr = wikiNotes ?? [];
+      const zeitlekturen = wArr.filter((n) => n.category === 'zeitlektur').length;
+      const total = wArr.length;
+      return { headline: `${total} Notizen`, subline: `${zeitlekturen} Zeitlektüren · L1–L17` };
     })(),
   };
 }
