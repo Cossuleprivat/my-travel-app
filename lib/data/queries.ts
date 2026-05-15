@@ -77,7 +77,7 @@ export async function listSightsForCity(cityId: string): Promise<Quest[]> {
   const sb = createServiceClient();
   const { data, error } = await sb
     .from('quests')
-    .select('id, city_id, title, description, category')
+    .select('id, city_id, title, description, category, difficulty, estimated_minutes, estimated_cost_eur')
     .eq('city_id', cityId)
     .eq('category', 'landmark')
     .eq('is_active', true);

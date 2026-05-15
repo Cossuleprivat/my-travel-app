@@ -1,24 +1,6 @@
 'use client';
-import { useRef, useState, useTransition } from 'react';
-
-async function addBook(fd: FormData) {
-  'use server';
-  const { createServiceClient } = await import('@/lib/supabase/server');
-  const { requireUserId } = await import('@/lib/auth/current-user');
-  const { revalidatePath } = await import('next/cache');
-  const userId = await requireUserId();
-  const sb = createServiceClient();
-  await sb.from('user_books').insert({
-    user_id: userId,
-    title: fd.get('title') as string,
-    author: fd.get('author') as string || null,
-    type: fd.get('type') as string || 'book',
-    status: 'planned',
-    year: 2026,
-    notes: fd.get('notes') as string || null,
-  });
-  revalidatePath('/reading');
-}
+import { useRef, useState } from 'react';
+import { addBook } from '@/lib/actions/reading';
 
 export function AddBookForm() {
   const [open, setOpen] = useState(false);

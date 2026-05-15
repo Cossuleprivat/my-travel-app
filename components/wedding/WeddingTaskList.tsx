@@ -1,17 +1,4 @@
-'use client';
-import { useTransition } from 'react';
-
-async function toggleTask(id: string, currentStatus: string) {
-  'use server';
-  const { createServiceClient } = await import('@/lib/supabase/server');
-  const { requireUserId } = await import('@/lib/auth/current-user');
-  const { revalidatePath } = await import('next/cache');
-  const userId = await requireUserId();
-  const sb = createServiceClient();
-  const next = currentStatus === 'done' ? 'open' : 'done';
-  await sb.from('wedding_tasks').update({ status: next }).eq('id', id).eq('user_id', userId);
-  revalidatePath('/wedding');
-}
+import { toggleTask } from '@/lib/actions/wedding';
 
 type Task = { id: string; title: string; deadline: string | null; status: string; notes: string | null };
 

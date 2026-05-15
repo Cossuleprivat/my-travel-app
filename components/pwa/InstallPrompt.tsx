@@ -20,7 +20,7 @@ export function InstallPrompt() {
       return;
     }
 
-    const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as Record<string, unknown>)['MSStream'];
     setIsIos(isIosDevice);
 
     const stored = sessionStorage.getItem('pwa-prompt-dismissed');

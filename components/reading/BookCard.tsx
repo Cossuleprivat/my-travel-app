@@ -1,20 +1,4 @@
-'use client';
-import { useTransition } from 'react';
-import { createServiceClient } from '@/lib/supabase/server';
-
-// Status action — calls server action
-async function setBookStatus(id: string, status: string) {
-  'use server';
-  const { createServiceClient } = await import('@/lib/supabase/server');
-  const { requireUserId } = await import('@/lib/auth/current-user');
-  const { revalidatePath } = await import('next/cache');
-  const userId = await requireUserId();
-  const sb = createServiceClient();
-  const update: Record<string, unknown> = { status };
-  if (status === 'done') update.completed_at = new Date().toISOString();
-  await sb.from('user_books').update(update).eq('id', id).eq('user_id', userId);
-  revalidatePath('/reading');
-}
+import { setBookStatus } from '@/lib/actions/reading';
 
 type Book = {
   id: string; title: string; author: string | null; type: string; status: string;
