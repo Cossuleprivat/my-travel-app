@@ -34,6 +34,9 @@ export type Quest = {
   title: string;
   description: string | null;
   category: 'landmark' | 'activity' | 'restaurant' | 'hidden_gem';
+  difficulty: number | null;
+  estimated_minutes: number | null;
+  estimated_cost_eur: number | null;
 };
 
 export type UserCityVisit = {
