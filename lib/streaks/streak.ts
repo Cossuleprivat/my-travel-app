@@ -1,12 +1,15 @@
 import 'server-only';
 import { createServiceClient } from '@/lib/supabase/server';
 
+export type AvatarMood = 'excited' | 'happy' | 'neutral' | 'sad';
+
 export type StreakData = {
   currentStreak: number;
   longestStreak: number;
   lastActiveDate: string | null;
-  /** True if the streak was active yesterday or today */
   isAlive: boolean;
+  activeToday: boolean;
+  mood: AvatarMood;
 };
 
 export type StreakMilestone = 7 | 14 | 30 | 100;
@@ -14,6 +17,13 @@ const MILESTONES: StreakMilestone[] = [7, 14, 30, 100];
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+export function deriveMood(activeToday: boolean, isAlive: boolean, currentStreak: number): AvatarMood {
+  if (activeToday && currentStreak >= 7) return 'excited';
+  if (activeToday) return 'happy';
+  if (isAlive) return 'neutral'; // alive (yesterday) but not yet active today
+  return 'sad';
 }
 
 /** Pure function — testable without DB. */
@@ -28,7 +38,6 @@ export function calculateStreak(
   }
 
   if (lastActiveDate === today) {
-    // Already active today — no change
     return { newCurrent: currentStreak, newLongest: longestStreak, changed: false };
   }
 
@@ -37,12 +46,10 @@ export function calculateStreak(
   const diffDays = Math.round((now.getTime() - last.getTime()) / 86_400_000);
 
   if (diffDays === 1) {
-    // Yesterday was active → continue streak
     const newCurrent = currentStreak + 1;
     return { newCurrent, newLongest: Math.max(newCurrent, longestStreak), changed: true };
   }
 
-  // More than 1 day gap → streak broken, restart at 1
   return { newCurrent: 1, newLongest: longestStreak, changed: true };
 }
 
@@ -77,7 +84,6 @@ export async function updateStreak(userId: string): Promise<StreakMilestone[]> {
       .insert({ user_id: userId, current_streak: newCurrent, longest_streak: newLongest, last_active_date: today });
   }
 
-  // Return any milestones crossed for the first time today
   const prevStreak = existing?.current_streak ?? 0;
   return MILESTONES.filter((m) => prevStreak < m && newCurrent >= m);
 }
@@ -93,20 +99,26 @@ export async function getStreak(userId: string): Promise<StreakData> {
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!data) return { currentStreak: 0, longestStreak: 0, lastActiveDate: null, isAlive: false };
+  if (!data) {
+    return { currentStreak: 0, longestStreak: 0, lastActiveDate: null, isAlive: false, activeToday: false, mood: 'sad' };
+  }
 
   const last = data.last_active_date;
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayISO = yesterday.toISOString().slice(0, 10);
 
-  const isAlive = last === today || last === yesterdayISO;
+  const activeToday = last === today;
+  const isAlive = activeToday || last === yesterdayISO;
   const currentStreak = isAlive ? data.current_streak : 0;
+  const mood = deriveMood(activeToday, isAlive, currentStreak);
 
   return {
     currentStreak,
     longestStreak: data.longest_streak,
     lastActiveDate: last,
     isAlive,
+    activeToday,
+    mood,
   };
 }

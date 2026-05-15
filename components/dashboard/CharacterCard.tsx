@@ -2,21 +2,23 @@
 import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import type { LevelBreakdown } from '@/lib/xp';
+import type { AvatarMood } from '@/lib/streaks/streak';
 
 export function CharacterCard({
-  name, level, avatarUrl, streak = 0, streakAlive = false,
+  name, level, avatarUrl, streak = 0, streakAlive = false, mood,
 }: {
   name: string;
   level: LevelBreakdown;
   avatarUrl: string | null;
   streak?: number;
   streakAlive?: boolean;
+  mood?: AvatarMood;
 }) {
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle p-5">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <AvatarDisplay avatarUrl={avatarUrl} name={name} size="md" />
+          <AvatarDisplay avatarUrl={avatarUrl} name={name} size="md" mood={mood} />
           <div className="absolute -bottom-2 -right-2">
             <ProgressRing
               pct={level.progressPct}

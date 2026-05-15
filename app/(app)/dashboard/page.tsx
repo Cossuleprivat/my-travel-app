@@ -8,6 +8,7 @@ import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
 import { StreakBadge } from '@/components/dashboard/StreakBadge';
+import { DailyNudge } from '@/components/dashboard/DailyNudge';
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
@@ -28,6 +29,13 @@ export default async function DashboardPage() {
         avatarUrl={avatarUrl}
         streak={streakData.currentStreak}
         streakAlive={streakData.isAlive}
+        mood={streakData.mood}
+      />
+
+      <DailyNudge
+        streak={streakData}
+        cityCount={stats.cityCount}
+        questCount={stats.sightCount}
       />
 
       <StreakBadge
