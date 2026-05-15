@@ -1,10 +1,27 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Travel Scorer — Track every journey",
-  description:
-    "Track your travels, level up your character, and explore the world.",
+  title: "LiveOS — Travel Scorer",
+  description: "Track every journey. Level up your explorer.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "LiveOS",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0e0e0f",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
