@@ -72,12 +72,16 @@ async function getLifeModuleStats(userId: string) {
     { data: books },
     { data: financeMonths },
     { data: weddingTasks },
+    { data: goals },
+    { data: openTasks },
   ] = await Promise.all([
     sb.from('user_run_logs').select('distance_km').eq('user_id', userId),
     sb.from('user_games').select('status').eq('user_id', userId).eq('year', 2026),
     sb.from('user_books').select('status, type').eq('user_id', userId).eq('year', 2026),
     sb.from('finance_months').select('kk_saldo_end, kk_free').eq('user_id', userId).eq('year', 2026).order('month').limit(12),
     sb.from('wedding_tasks').select('status').eq('user_id', userId),
+    sb.from('user_goals').select('status, xp_reward').eq('user_id', userId).eq('year', 2026),
+    sb.from('user_tasks').select('status').eq('user_id', userId),
   ]);
 
   const totalKm = (runLogs ?? []).reduce((s, r) => s + Number(r.distance_km ?? 0), 0);
@@ -122,6 +126,18 @@ async function getLifeModuleStats(userId: string) {
       headline: `${wDone}/${wTotal} Tasks erledigt`,
       subline: `Standesamt in ${daysToStandesamt} Tagen`,
     },
+    goals: (() => {
+      const gArr = goals ?? [];
+      const totalXP = gArr.reduce((s, g) => s + g.xp_reward, 0);
+      const doneXP = gArr.filter((g) => g.status === 'done').reduce((s, g) => s + g.xp_reward, 0);
+      return { headline: `${doneXP} / ${totalXP} XP`, subline: `${gArr.filter((g) => g.status === 'done').length}/${gArr.length} Ziele erreicht` };
+    })(),
+    tasks: (() => {
+      const tArr = openTasks ?? [];
+      const remaining = tArr.filter((t) => t.status !== 'done').length;
+      const done = tArr.filter((t) => t.status === 'done').length;
+      return { headline: `${remaining} offen`, subline: `${done}/${tArr.length} erledigt` };
+    })(),
   };
 }
 

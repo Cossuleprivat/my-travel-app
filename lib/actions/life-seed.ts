@@ -151,6 +151,42 @@ export async function seedGoals(userId: string) {
   return { seeded: true };
 }
 
+export async function seedTasks(userId: string) {
+  const sb = createServiceClient();
+  const { count } = await sb.from('user_tasks').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+  if ((count ?? 0) > 0) return { seeded: false };
+
+  const tasks = [
+    // Sport
+    { user_id: userId, title: 'Golf Platzreife Prüfung anmelden', area: 'sport', priority: 'high', deadline: '2026-05-31', notes: 'DTB-Prüfung buchen' },
+    { user_id: userId, title: 'Laufschuhe überprüfen / ggf. neu', area: 'sport', priority: 'medium', deadline: '2026-05-25' },
+    { user_id: userId, title: 'Stretching-Routine aufbauen', area: 'sport', priority: 'low', notes: 'Ziel: Hände zum Boden' },
+    // Travel
+    { user_id: userId, title: 'Portugal Aktivitäten recherchieren', area: 'travel', priority: 'high', deadline: '2026-05-25' },
+    { user_id: userId, title: 'Sardinien Unterkunft finalisieren', area: 'travel', priority: 'high', deadline: '2026-05-31' },
+    { user_id: userId, title: 'Reiseversicherung prüfen', area: 'travel', priority: 'medium', deadline: '2026-06-01' },
+    // Finance
+    { user_id: userId, title: 'KK-Abrechnung Mai prüfen', area: 'finance', priority: 'high', deadline: '2026-06-01' },
+    { user_id: userId, title: 'Daueraufträge überprüfen', area: 'finance', priority: 'medium' },
+    { user_id: userId, title: 'Budget-Übersicht aktualisieren', area: 'finance', priority: 'medium' },
+    // Wedding
+    { user_id: userId, title: 'Standesamt Termin bestätigen', area: 'wedding', priority: 'high', deadline: '2026-06-01' },
+    { user_id: userId, title: 'Anzug Anprobe Termin buchen', area: 'wedding', priority: 'high', deadline: '2026-06-15' },
+    { user_id: userId, title: 'Hochzeitsfeier Gästeliste finalisieren', area: 'wedding', priority: 'medium', deadline: '2026-07-01' },
+    // Coding
+    { user_id: userId, title: 'LiveOS auf Vercel deployen', area: 'coding', priority: 'high', notes: 'Domain kaufen, ENV vars setzen' },
+    { user_id: userId, title: 'PWA auf iPhone testen', area: 'coding', priority: 'medium' },
+    { user_id: userId, title: 'Push Notifications einrichten', area: 'coding', priority: 'low' },
+    // Allgemein
+    { user_id: userId, title: 'Arzttermin Jahrescheck', area: 'allgemein', priority: 'medium' },
+    { user_id: userId, title: 'Abo-Liste durchgehen', area: 'allgemein', priority: 'low', notes: 'Unnötige Abos kündigen' },
+  ];
+
+  const { error } = await sb.from('user_tasks').insert(tasks);
+  if (error) throw error;
+  return { seeded: true };
+}
+
 export async function seedAllFromNotion(userId: string) {
   const [goals, games, books, finance, wedding] = await Promise.all([
     seedGoals(userId),
