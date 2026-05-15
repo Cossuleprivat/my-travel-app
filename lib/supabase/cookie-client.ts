@@ -19,15 +19,18 @@ import type { NextRequest, NextResponse } from 'next/server';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!url || !anonKey) {
-  throw new Error(
-    'NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is not set in .env.local',
-  );
+
+function getEnv() {
+  if (!url || !anonKey) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is not set in .env.local',
+    );
+  }
+  return { url, anonKey };
 }
-const supabaseUrl: string = url;
-const supabaseAnonKey: string = anonKey;
 
 export async function createCookieClient() {
+  const { url: supabaseUrl, anonKey: supabaseAnonKey } = getEnv();
   const store = await cookies();
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -49,6 +52,7 @@ export async function createCookieClient() {
 }
 
 export function createMiddlewareClient(req: NextRequest, res: NextResponse) {
+  const { url: supabaseUrl, anonKey: supabaseAnonKey } = getEnv();
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
