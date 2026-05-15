@@ -4,6 +4,8 @@ import { ensureUserProfile, getUserStats } from '@/lib/data/queries';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
 import { calcLevel } from '@/lib/xp';
 import { MODULE_REGISTRY } from '@/modules/registry';
+import { createServiceClient } from '@/lib/supabase/server';
+import { seedAllFromNotion } from '@/lib/actions/life-seed';
 import type { LiveOSModule } from '@/modules/types';
 
 const COLOR_MAP: Record<string, { border: string; accent: string; badge: string }> = {
@@ -61,21 +63,111 @@ function ModuleCard({ mod, stats }: { mod: LiveOSModule; stats: ModuleStats }) {
   return <Link href={mod.href}>{card}</Link>;
 }
 
+async function getLifeModuleStats(userId: string) {
+  const sb = createServiceClient();
+
+  const [
+    { data: runLogs },
+    { data: games },
+    { data: books },
+    { data: financeMonths },
+    { data: weddingTasks },
+    { data: goals },
+    { data: openTasks },
+    { data: wikiNotes },
+  ] = await Promise.all([
+    sb.from('user_run_logs').select('distance_km').eq('user_id', userId),
+    sb.from('user_games').select('status').eq('user_id', userId).eq('year', 2026),
+    sb.from('user_books').select('status, type').eq('user_id', userId).eq('year', 2026),
+    sb.from('finance_months').select('kk_saldo_end, kk_free').eq('user_id', userId).eq('year', 2026).order('month').limit(12),
+    sb.from('wedding_tasks').select('status').eq('user_id', userId),
+    sb.from('user_goals').select('status, xp_reward').eq('user_id', userId).eq('year', 2026),
+    sb.from('user_tasks').select('status').eq('user_id', userId),
+    sb.from('user_notes').select('category, lektion_nr').eq('user_id', userId),
+  ]);
+
+  const totalKm = (runLogs ?? []).reduce((s, r) => s + Number(r.distance_km ?? 0), 0);
+  const daysToHM = Math.ceil((new Date('2026-10-25').getTime() - Date.now()) / 86400000);
+
+  const gamesArr = games ?? [];
+  const gamesCompleted = gamesArr.filter((g) => g.status === 'completed').length;
+  const gamesTotal = gamesArr.length;
+
+  const booksArr = books ?? [];
+  const booksDone = booksArr.filter((b) => b.type === 'book' && b.status === 'done').length;
+  const audioDone = booksArr.filter((b) => b.type === 'audiobook' && b.status === 'done').length;
+
+  const latestMonth = (financeMonths ?? []).at(-1);
+
+  const wArr = weddingTasks ?? [];
+  const wDone = wArr.filter((t) => t.status === 'done').length;
+  const wTotal = wArr.length;
+  const daysToStandesamt = Math.ceil((new Date('2026-10-10').getTime() - Date.now()) / 86400000);
+
+  return {
+    sport: {
+      headline: `${totalKm.toFixed(1)} km gelaufen`,
+      subline: `${daysToHM}d bis Halbmarathon · Ziel: 500 km`,
+    },
+    gaming: {
+      headline: `${gamesCompleted}/${gamesTotal} Spiele fertig`,
+      subline: '10-Slot Backlog · Jahresplan 2026',
+    },
+    reading: {
+      headline: `${booksDone}/6 Bücher · ${audioDone}/6 Hörbücher`,
+      subline: 'Leseplan 2026',
+    },
+    finance: latestMonth ? {
+      headline: `KK ${Number(latestMonth.kk_saldo_end ?? 0).toLocaleString('de-DE')} €`,
+      subline: `${Number(latestMonth.kk_free ?? 0).toLocaleString('de-DE')} € frei · Tilgungsplan aktiv`,
+    } : {
+      headline: 'Noch kein Snapshot',
+      subline: 'Ersten Monatseintrag erstellen',
+    },
+    wedding: {
+      headline: `${wDone}/${wTotal} Tasks erledigt`,
+      subline: `Standesamt in ${daysToStandesamt} Tagen`,
+    },
+    goals: (() => {
+      const gArr = goals ?? [];
+      const totalXP = gArr.reduce((s, g) => s + g.xp_reward, 0);
+      const doneXP = gArr.filter((g) => g.status === 'done').reduce((s, g) => s + g.xp_reward, 0);
+      return { headline: `${doneXP} / ${totalXP} XP`, subline: `${gArr.filter((g) => g.status === 'done').length}/${gArr.length} Ziele erreicht` };
+    })(),
+    tasks: (() => {
+      const tArr = openTasks ?? [];
+      const remaining = tArr.filter((t) => t.status !== 'done').length;
+      const done = tArr.filter((t) => t.status === 'done').length;
+      return { headline: `${remaining} offen`, subline: `${done}/${tArr.length} erledigt` };
+    })(),
+    wiki: (() => {
+      const wArr = wikiNotes ?? [];
+      const zeitlekturen = wArr.filter((n) => n.category === 'zeitlektur').length;
+      const total = wArr.length;
+      return { headline: `${total} Notizen`, subline: `${zeitlekturen} Zeitlektüren · L1–L17` };
+    })(),
+  };
+}
+
 export default async function HubPage() {
   const userId = await requireUserId();
+
   const [profile, avatarUrl, travelStats] = await Promise.all([
     ensureUserProfile(userId),
     getAvatarSignedUrl(userId),
     getUserStats(userId),
+    seedAllFromNotion(userId),
   ]);
 
   const level = calcLevel(travelStats.xpTotal);
+  const lifeStats = await getLifeModuleStats(userId);
 
   const moduleStats: Record<string, ModuleStats> = {
     travel: {
       headline: `Level ${level.level} Explorer`,
-      subline: `${travelStats.countryCount} countries · ${travelStats.cityCount} cities · ${travelStats.sightCount} quests`,
+      subline: `${travelStats.countryCount} Länder · ${travelStats.cityCount} Städte · ${travelStats.sightCount} Quests`,
     },
+    ...lifeStats,
   };
 
   return (
@@ -95,7 +187,7 @@ export default async function HubPage() {
         )}
         <div>
           <h1 className="text-xl font-semibold text-text-primary">
-            {profile.display_name ?? 'Your LiveOS'}
+            {profile.display_name ?? 'Dein LiveOS'}
           </h1>
           <p className="text-text-muted text-sm">Personal life operating system</p>
         </div>
@@ -103,7 +195,7 @@ export default async function HubPage() {
 
       {/* Modules */}
       <section className="space-y-3">
-        <h2 className="text-xs label-mono text-text-muted">Modules</h2>
+        <h2 className="text-xs label-mono text-text-muted">Module</h2>
         <div className="space-y-2">
           {MODULE_REGISTRY.map((mod) => (
             <ModuleCard key={mod.id} mod={mod} stats={moduleStats[mod.id] ?? null} />

@@ -277,6 +277,8 @@ export type TripStopDetail = {
   position: number;
   arrival_date: string | null;
   departure_date: string | null;
+  lat: number | null;
+  lng: number | null;
   quests: TripQuestDetail[];
 };
 
@@ -303,7 +305,7 @@ export async function getTripDetail(tripId: string, userId: string): Promise<Tri
   const { data: stops, error: stopsErr } = await sb
     .from('trip_stops')
     .select(`id, trip_id, city_id, position, arrival_date, departure_date,
-      cities!inner(name, slug, countries!inner(name, slug, continents!inner(slug)))`)
+      cities!inner(name, slug, latitude, longitude, countries!inner(name, slug, continents!inner(slug)))`)
     .eq('trip_id', tripId)
     .order('position');
   if (stopsErr) throw stopsErr;
@@ -344,6 +346,8 @@ export async function getTripDetail(tripId: string, userId: string): Promise<Tri
       position: s.position,
       arrival_date: s.arrival_date,
       departure_date: s.departure_date,
+      lat: c.latitude ?? null,
+      lng: c.longitude ?? null,
       quests: questsByStop[s.id] ?? [],
     };
   });
@@ -355,9 +359,9 @@ export async function listQuestsForCity(cityId: string): Promise<Quest[]> {
   const sb = createServiceClient();
   const { data, error } = await sb
     .from('quests')
-    .select('id, city_id, title, description, category')
+    .select('id, city_id, title, description, category, difficulty, estimated_minutes, estimated_cost_eur')
     .eq('city_id', cityId)
-    .eq('is_active', true)
+    .order('difficulty', { nullsFirst: false })
     .order('title');
   if (error) throw error;
   return data ?? [];

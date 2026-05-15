@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@/lib/supabase/cookie-client';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/explore', '/trips', '/profile', '/onboarding', '/hub'];
+const PROTECTED_PREFIXES = ['/dashboard', '/explore', '/trips', '/profile', '/onboarding', '/hub', '/api/push', '/api/modules', '/sport', '/gaming', '/reading', '/finance', '/wedding', '/goals', '/tasks', '/wiki'];
 const AUTH_ROUTES = ['/auth/login', '/auth/signup'];
 
 function clearStaleSbCookies(req: NextRequest, res: NextResponse) {

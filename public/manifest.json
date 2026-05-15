@@ -1,0 +1,45 @@
+{
+  "name": "LiveOS — Travel Scorer",
+  "short_name": "LiveOS",
+  "description": "Track every journey. Level up your explorer.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0e0e0f",
+  "theme_color": "#0e0e0f",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "My Trips",
+      "url": "/trips",
+      "description": "View and plan your trips"
+    },
+    {
+      "name": "Explore",
+      "url": "/explore",
+      "description": "Discover new destinations"
+    }
+  ]
+}

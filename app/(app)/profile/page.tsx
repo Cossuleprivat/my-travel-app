@@ -6,6 +6,7 @@ import { getAvatarSignedUrl } from '@/lib/avatar/storage';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { CustomizationSlots } from '@/components/profile/CustomizationSlots';
 import { AchievementsStrip } from '@/components/profile/AchievementsStrip';
+import { PushNotificationToggle } from '@/components/profile/PushNotificationToggle';
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import { createCookieClient } from '@/lib/supabase/cookie-client';
 
@@ -33,6 +34,11 @@ export default async function ProfilePage() {
       />
       <CustomizationSlots equipped={equipped} unlockedItems={userItems.map((ui) => ui.item)} />
       <AchievementsStrip unlocked={new Set(ach)} />
+
+      <section className="rounded-xl bg-bg-surface border border-border-subtle p-4 space-y-4">
+        <h2 className="text-xs label-mono text-text-muted">Notifications</h2>
+        <PushNotificationToggle />
+      </section>
 
       <section className="rounded-xl bg-bg-surface border border-border-subtle p-4 space-y-3">
         <h2 className="text-xs label-mono text-text-muted">Account</h2>

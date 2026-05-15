@@ -1,5 +1,7 @@
 import { BottomNav } from './BottomNav';
 import { XpToastProvider } from '@/components/ui/XpToast';
+import { InstallPrompt } from '@/components/pwa/InstallPrompt';
+import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +11,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
       <BottomNav />
       <XpToastProvider />
+      <InstallPrompt />
+      <ServiceWorkerRegistrar />
     </div>
   );
 }
