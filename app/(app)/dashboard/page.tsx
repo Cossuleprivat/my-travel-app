@@ -3,17 +3,20 @@ import { getUserStats, listRecentActivity, ensureUserProfile } from '@/lib/data/
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
+import { getStreak } from '@/lib/streaks/streak';
 import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
+import { StreakBadge } from '@/components/dashboard/StreakBadge';
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
-  const [profile, stats, recent, avatarUrl] = await Promise.all([
+  const [profile, stats, recent, avatarUrl, streakData] = await Promise.all([
     ensureUserProfile(userId),
     getUserStats(userId),
     listRecentActivity(userId, 6),
     getAvatarSignedUrl(userId),
+    getStreak(userId),
   ]);
   const level = calcLevel(stats.xpTotal);
 
@@ -23,6 +26,14 @@ export default async function DashboardPage() {
         name={profile.display_name ?? 'Traveler'}
         level={level}
         avatarUrl={avatarUrl}
+        streak={streakData.currentStreak}
+        streakAlive={streakData.isAlive}
+      />
+
+      <StreakBadge
+        streak={streakData.currentStreak}
+        isAlive={streakData.isAlive}
+        longestStreak={streakData.longestStreak}
       />
 
       <section className="grid grid-cols-2 gap-3">

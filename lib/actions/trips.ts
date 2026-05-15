@@ -8,6 +8,7 @@ import { XP_EVENTS } from '@/lib/xp';
 import { getUserStats, listUserAchievements, ensureUserProfile } from '@/lib/data/queries';
 import { evaluateAchievements } from '@/lib/achievements';
 import { levelFromXp } from '@/lib/xp';
+import { updateStreak } from '@/lib/streaks/streak';
 
 async function awardXp(userId: string, xpDelta: number) {
   const sb = createServiceClient();
@@ -48,6 +49,7 @@ export async function createTrip(formData: FormData) {
     .single();
   if (error) throw error;
   await awardXp(userId, XP_EVENTS.tripCreated ?? 20);
+  updateStreak(userId).catch(() => {});
   revalidatePath('/trips');
   redirect(`/trips/${data.id}`);
 }

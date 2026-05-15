@@ -10,6 +10,7 @@ import {
 } from '@/lib/achievements';
 import { ensureUserProfile, getUserStats, listUserAchievements } from '@/lib/data/queries';
 import { checkAndGrantNewItems } from '@/lib/actions/items';
+import { updateStreak } from '@/lib/streaks/streak';
 
 async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
   const sb = createServiceClient();
@@ -41,8 +42,9 @@ async function awardXpAndCheckAchievements(userId: string, xpDelta: number) {
     if (achErr) throw achErr;
   }
 
-  // Unlock any items the user now qualifies for (fire-and-forget, non-blocking)
+  // Fire-and-forget: item unlock check + streak update (non-blocking)
   checkAndGrantNewItems(userId).catch(() => {});
+  updateStreak(userId).catch(() => {});
 
   return { xpTotal: newXp, level: newLevel, newAchievements: newOnes as AchievementId[] };
 }

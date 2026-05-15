@@ -4,11 +4,13 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import type { LevelBreakdown } from '@/lib/xp';
 
 export function CharacterCard({
-  name, level, avatarUrl,
+  name, level, avatarUrl, streak = 0, streakAlive = false,
 }: {
   name: string;
   level: LevelBreakdown;
   avatarUrl: string | null;
+  streak?: number;
+  streakAlive?: boolean;
 }) {
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle p-5">
@@ -29,6 +31,14 @@ export function CharacterCard({
           <h2 className="font-mono text-lg uppercase tracking-wider truncate">{name}</h2>
           <p className="text-accent-amber text-xs label-mono">{level.title}</p>
         </div>
+        {streak > 0 && (
+          <div className={`flex flex-col items-center gap-0.5 ${streakAlive ? '' : 'opacity-40'}`}>
+            <span className="text-xl leading-none" aria-hidden="true">🔥</span>
+            <span className={`text-xs font-mono font-bold ${streakAlive ? 'text-accent-amber' : 'text-text-muted'}`}>
+              {streak}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="mt-4">
