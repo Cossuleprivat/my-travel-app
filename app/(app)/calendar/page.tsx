@@ -1,6 +1,7 @@
 import { requireUserId } from '@/lib/auth/current-user';
 import { loadCalendarEvents } from '@/lib/calendar/events';
 import { CalendarView } from '@/components/calendar/CalendarView';
+import { AddEvent } from '@/components/calendar/AddEvent';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,8 @@ export default async function CalendarPage() {
           Abonnieren
         </a>
       </div>
+
+      <AddEvent />
 
       <CalendarView events={events} />
     </div>

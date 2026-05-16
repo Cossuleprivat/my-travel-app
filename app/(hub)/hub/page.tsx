@@ -6,7 +6,22 @@ import { calcLevel } from '@/lib/xp';
 import { MODULE_REGISTRY } from '@/modules/registry';
 import { createServiceClient } from '@/lib/supabase/server';
 import { seedAllFromNotion } from '@/lib/actions/life-seed';
+import { getTodayOverview } from '@/lib/dashboard/today';
+import { QuickAddTask } from '@/components/dashboard/QuickAddTask';
 import type { LiveOSModule } from '@/modules/types';
+
+const EVENT_DOT: Record<string, string> = {
+  blue: 'bg-accent-blue',
+  green: 'bg-accent-green',
+  amber: 'bg-accent-amber',
+  purple: 'bg-accent-purple',
+  red: 'bg-red-400',
+};
+
+function fmtDate(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.`;
+}
 
 const COLOR_MAP: Record<string, { border: string; accent: string; badge: string }> = {
   blue:   { border: 'border-accent-blue/30',   accent: 'text-accent-blue',   badge: 'bg-accent-blue/10 text-accent-blue' },
@@ -160,7 +175,10 @@ export default async function HubPage() {
   ]);
 
   const level = calcLevel(travelStats.xpTotal);
-  const lifeStats = await getLifeModuleStats(userId);
+  const [lifeStats, today] = await Promise.all([
+    getLifeModuleStats(userId),
+    getTodayOverview(userId),
+  ]);
 
   const moduleStats: Record<string, ModuleStats> = {
     travel: {
@@ -189,13 +207,120 @@ export default async function HubPage() {
           <h1 className="text-xl font-semibold text-text-primary">
             {profile.display_name ?? 'Dein LiveOS'}
           </h1>
-          <p className="text-text-muted text-sm">Personal life operating system</p>
+          <p className="text-text-muted text-sm">
+            {new Date(today.todayISO + 'T00:00:00').toLocaleDateString('de-DE', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}
+          </p>
         </div>
       </div>
 
-      {/* Modules */}
+      {/* TODAY */}
       <section className="space-y-3">
-        <h2 className="text-xs label-mono text-text-muted">Module</h2>
+        <h2 className="text-xs label-mono text-text-muted">Heute</h2>
+
+        {today.planWeek && (
+          <div className="rounded-xl bg-bg-surface border border-accent-green/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs label-mono text-accent-green">
+                  Laufplan {today.planWeek.weekStr} · {today.planWeek.dates}
+                </p>
+                <p className="text-text-primary text-sm mt-1">{today.planWeek.units}</p>
+              </div>
+              <div className="text-right shrink-0 ml-3">
+                <p className="text-accent-green font-semibold">{today.planWeek.km} km</p>
+                <p className="text-text-muted text-[11px]">{today.daysToHM}d bis HM</p>
+              </div>
+            </div>
+          </div>
+        )}
+        {!today.planWeek && today.nextPlanWeek && (
+          <div className="rounded-xl bg-bg-surface border border-border-subtle p-4">
+            <p className="text-xs label-mono text-text-muted">Laufplan startet</p>
+            <p className="text-text-primary text-sm mt-1">
+              {today.nextPlanWeek.weekStr} · {today.nextPlanWeek.dates} — {today.nextPlanWeek.units}
+            </p>
+          </div>
+        )}
+
+        {today.dueItems.length > 0 ? (
+          <div className="rounded-xl bg-bg-surface border border-border-subtle divide-y divide-border-subtle">
+            {today.dueItems.slice(0, 6).map((item) => (
+              <Link
+                key={`${item.source}-${item.id}`}
+                href={item.source === 'wedding' ? '/wedding' : '/tasks'}
+                className="flex items-center gap-3 p-3 hover:bg-bg-elevated transition-colors"
+              >
+                <span
+                  className={[
+                    'h-2 w-2 rounded-full shrink-0',
+                    item.overdue ? 'bg-red-400' : 'bg-accent-amber',
+                  ].join(' ')}
+                />
+                <span className="flex-1 text-sm text-text-primary truncate">{item.title}</span>
+                <span
+                  className={[
+                    'text-[11px] label-mono shrink-0',
+                    item.overdue ? 'text-red-400' : 'text-text-muted',
+                  ].join(' ')}
+                >
+                  {item.overdue ? 'überfällig' : 'heute'} · {item.area}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-text-muted text-sm px-1">Nichts überfällig — alles im Griff.</p>
+        )}
+
+        {today.todayEvents.length > 0 && (
+          <div className="rounded-xl bg-bg-surface border border-border-subtle p-3 space-y-2">
+            <p className="text-[11px] label-mono text-text-muted">Termine heute</p>
+            {today.todayEvents.map((e) => (
+              <div key={e.id} className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${EVENT_DOT[e.color] ?? 'bg-accent-blue'}`} />
+                <span className="text-sm text-text-primary">{e.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <QuickAddTask />
+      </section>
+
+      {/* Upcoming */}
+      {today.upcomingEvents.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs label-mono text-text-muted">Demnächst</h2>
+            <Link href="/calendar" className="text-accent-blue text-xs label-mono">
+              Kalender →
+            </Link>
+          </div>
+          <div className="rounded-xl bg-bg-surface border border-border-subtle divide-y divide-border-subtle">
+            {today.upcomingEvents.map((e) => (
+              <Link
+                key={e.id}
+                href={e.href ?? '/calendar'}
+                className="flex items-center gap-3 p-3 hover:bg-bg-elevated transition-colors"
+              >
+                <span className={`h-2 w-2 rounded-full shrink-0 ${EVENT_DOT[e.color] ?? 'bg-accent-blue'}`} />
+                <span className="flex-1 text-sm text-text-primary truncate">{e.title}</span>
+                <span className="text-[11px] label-mono text-text-muted shrink-0">
+                  {fmtDate(e.date)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Modules / Command Center */}
+      <section className="space-y-3">
+        <h2 className="text-xs label-mono text-text-muted">Bereiche</h2>
         <div className="space-y-2">
           {MODULE_REGISTRY.map((mod) => (
             <ModuleCard key={mod.id} mod={mod} stats={moduleStats[mod.id] ?? null} />
