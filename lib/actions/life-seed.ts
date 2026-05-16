@@ -1,5 +1,6 @@
 'use server';
 import { createServiceClient } from '@/lib/supabase/server';
+import { ZEITLEKTUR_CONTENT, PLACEHOLDER_MARKER } from '@/lib/wiki/zeitlekturen-content';
 
 // Pre-populated from Notion 2026 HQ — run once per user to bootstrap their data
 
@@ -243,31 +244,56 @@ _Was hat mich überrascht? Was nehme ich mit?_
 export async function seedWiki(userId: string) {
   const sb = createServiceClient();
   const { count } = await sb.from('user_notes').select('id', { count: 'exact', head: true }).eq('user_id', userId);
-  if ((count ?? 0) > 0) return { seeded: false };
 
-  const notes = ZEITLEKTUREN.map((l, i) => ({
-    user_id: userId,
-    title: `L${l.nr} — ${l.titel}`,
-    category: 'zeitlektur',
-    content: zeitlekturContent(l.zeitraum),
-    lektion_nr: l.nr,
-    lektion_zeitraum: l.zeitraum,
-    is_pinned: l.nr === 1,
-    sort_order: i + 1,
-  }));
+  if ((count ?? 0) === 0) {
+    const notes = ZEITLEKTUREN.map((l, i) => ({
+      user_id: userId,
+      title: `L${l.nr} — ${l.titel}`,
+      category: 'zeitlektur',
+      content: ZEITLEKTUR_CONTENT[l.nr] ?? zeitlekturContent(l.zeitraum),
+      lektion_nr: l.nr,
+      lektion_zeitraum: l.zeitraum,
+      is_pinned: l.nr === 1,
+      sort_order: i + 1,
+    }));
+    const { error } = await sb.from('user_notes').insert(notes);
+    if (error) throw error;
+    return { seeded: true };
+  }
 
-  const { error } = await sb.from('user_notes').insert(notes);
-  if (error) throw error;
-  return { seeded: true };
+  // Backfill: replace placeholder templates with rich encyclopedia prose,
+  // without overwriting any note the user has edited themselves.
+  const { data: existing } = await sb
+    .from('user_notes')
+    .select('id, lektion_nr, content')
+    .eq('user_id', userId)
+    .eq('category', 'zeitlektur');
+
+  let backfilled = 0;
+  for (const note of existing ?? []) {
+    const nr = note.lektion_nr as number | null;
+    if (!nr || !ZEITLEKTUR_CONTENT[nr]) continue;
+    const content = (note.content as string) ?? '';
+    if (content.includes(PLACEHOLDER_MARKER)) {
+      await sb
+        .from('user_notes')
+        .update({ content: ZEITLEKTUR_CONTENT[nr] })
+        .eq('id', note.id as string);
+      backfilled++;
+    }
+  }
+  return { seeded: false, backfilled };
 }
 
 export async function seedAllFromNotion(userId: string) {
-  const [goals, games, books, finance, wedding] = await Promise.all([
+  const [goals, games, books, finance, wedding, tasks, wiki] = await Promise.all([
     seedGoals(userId),
     seedGames(userId),
     seedBooks(userId),
     seedFinance(userId),
     seedWedding(userId),
+    seedTasks(userId),
+    seedWiki(userId),
   ]);
-  return { goals, games, books, finance, wedding };
+  return { goals, games, books, finance, wedding, tasks, wiki };
 }
