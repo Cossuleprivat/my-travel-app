@@ -9,12 +9,6 @@ import { createServiceClient } from '@/lib/supabase/server';
 //   VAPID_MAILTO=mailto:you@example.com
 //
 // Generate keys once: npx web-push generate-vapid-keys
-webpush.setVapidDetails(
-  process.env.VAPID_MAILTO ?? 'mailto:admin@liveos.app',
-  process.env.VAPID_PUBLIC_KEY ?? '',
-  process.env.VAPID_PRIVATE_KEY ?? '',
-);
-
 type PushPayload = {
   title: string;
   body: string;
@@ -23,7 +17,12 @@ type PushPayload = {
 };
 
 export async function POST(req: NextRequest) {
-  // Internal endpoint — protect with a shared secret in production
+  webpush.setVapidDetails(
+    process.env.VAPID_MAILTO ?? 'mailto:admin@liveos.app',
+    process.env.VAPID_PUBLIC_KEY ?? '',
+    process.env.VAPID_PRIVATE_KEY ?? '',
+  );
+
   const secret = req.headers.get('x-push-secret');
   if (secret !== process.env.PUSH_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

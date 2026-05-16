@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { XpToastProvider } from '@/components/ui/XpToast';
 
 export default function HubLayout({ children }: { children: React.ReactNode }) {
