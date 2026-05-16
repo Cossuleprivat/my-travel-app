@@ -39,4 +39,38 @@
     letter-spacing: 0.05em;
     font-weight: 500;
   }
+
+  /* Animated aurora background for auth screens */
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.5;
+    will-change: transform;
+  }
+  .aurora-blob-1 { animation: auroraDrift1 18s ease-in-out infinite alternate; }
+  .aurora-blob-2 { animation: auroraDrift2 22s ease-in-out infinite alternate; }
+  .aurora-blob-3 { animation: auroraDrift3 26s ease-in-out infinite alternate; }
+
+  .auth-grid {
+    background-image:
+      linear-gradient(to right, rgba(64, 160, 208, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(64, 160, 208, 0.06) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 100%);
+  }
+}
+
+@keyframes auroraDrift1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(60px, -40px, 0) scale(1.15); }
+}
+@keyframes auroraDrift2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1.1); }
+  100% { transform: translate3d(-50px, 50px, 0) scale(0.9); }
+}
+@keyframes auroraDrift3 {
+  0%   { transform: translate3d(0, 0, 0) scale(0.95); }
+  100% { transform: translate3d(40px, 30px, 0) scale(1.2); }
 }

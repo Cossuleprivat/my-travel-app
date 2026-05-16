@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
 
   if (isAuthRoute && user) {
     const url = req.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/hub';
     url.search = '';
     return NextResponse.redirect(url);
   }
