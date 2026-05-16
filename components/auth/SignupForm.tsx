@@ -19,7 +19,7 @@ export function SignupForm() {
         setError(res.error);
         return;
       }
-      router.push('/dashboard');
+      router.push('/hub');
       router.refresh();
     });
   }

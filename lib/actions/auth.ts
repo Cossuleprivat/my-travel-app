@@ -1,56 +1,17 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
-import { createCookieClient } from '@/lib/supabase/cookie-client';
-import { ensureUserProfile } from '@/lib/data/queries';
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
 
-export async function signIn(formData: FormData): Promise<AuthResult> {
-  const email = String(formData.get('email') ?? '').trim().toLowerCase();
-  const password = String(formData.get('password') ?? '');
-  if (!email || !password) return { ok: false, error: 'Email and password are required.' };
-
-  const sb = await createCookieClient();
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: 'Login failed.' };
-
-  await ensureUserProfile(data.user.id);
-  revalidatePath('/', 'layout');
+export async function signIn(_formData: FormData): Promise<AuthResult> {
   return { ok: true };
 }
 
-export async function signUp(formData: FormData): Promise<AuthResult> {
-  const email = String(formData.get('email') ?? '').trim().toLowerCase();
-  const password = String(formData.get('password') ?? '');
-  const displayName = String(formData.get('displayName') ?? '').trim();
-  if (!email || !password) return { ok: false, error: 'Email and password are required.' };
-  if (password.length < 6) return { ok: false, error: 'Password must be at least 6 characters.' };
-
-  const sb = await createCookieClient();
-  const { data, error } = await sb.auth.signUp({
-    email,
-    password,
-    options: { data: { display_name: displayName || null } },
-  });
-  if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: 'Sign-up failed.' };
-
-  // Best-effort profile bootstrap. ensureUserProfile is idempotent.
-  await ensureUserProfile(data.user.id);
-  if (displayName) {
-    const { createServiceClient } = await import('@/lib/supabase/server');
-    const admin = createServiceClient();
-    await admin.from('user_profiles').update({ display_name: displayName }).eq('id', data.user.id);
-  }
-  revalidatePath('/', 'layout');
+export async function signUp(_formData: FormData): Promise<AuthResult> {
   return { ok: true };
 }
 
 export async function signOut() {
-  const sb = await createCookieClient();
-  await sb.auth.signOut();
-  redirect('/auth/login');
+  redirect('/hub');
 }
