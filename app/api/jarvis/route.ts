@@ -1,92 +1,149 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
-// When you add an Anthropic API key, replace the mock logic with claude-haiku-4-5.
-// For now, Jarvis replies with personality-driven mock responses.
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Free model — $0 cost, 1M context window
+const MODEL = 'deepseek/deepseek-v4-flash:free';
+const FALLBACK_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
 
-const MOCK_RESPONSES: Array<{ triggers: string[]; replies: string[] }> = [
-  {
-    triggers: ['reise', 'trip', 'urlaub', 'travel', 'fliegen', 'flug'],
-    replies: [
-      'Reisen? Gute Idee. Wohin soll es gehen? Öffne den Travel-Bereich und ich zeig dir was offen ist.',
-      'Ah, Fernweh. Deine letzten Städte warten noch auf Sights. Erst abarbeiten, dann neues Ziel.',
-      'Travel-Modul ist bereit. Neue Trip anlegen oder alte abschließen — was zuerst?',
-    ],
-  },
-  {
-    triggers: ['motivation', 'motivier', 'müde', 'müde', 'antrieb', 'kraft'],
-    replies: [
-      'Hör auf darüber nachzudenken. Tu es. Wir reden danach.',
-      'Motivation folgt der Tat, nicht umgekehrt. Fang an.',
-      'Die Version von dir, die du sein willst, wartet nicht. Los.',
-      'Du bist hier, du hast geöffnet — das ist schon Schritt 1. Was ist Schritt 2?',
-    ],
-  },
-  {
-    triggers: ['plan', 'heute', 'tag', 'ansteht', 'was machen'],
-    replies: [
-      'Keine aktiven Trips, 0 offene Quests. Entweder du planst was Neues, oder ich langweile mich.',
-      'Lass sehen — Travel wartet, Fitness kommt bald, Finance noch nicht aktiv. Was willst du angehen?',
-      'Dein Dashboard zeigt was offen ist. Ich warte auf deinen Move.',
-    ],
-  },
-  {
-    triggers: ['fitness', 'sport', 'training', 'workout'],
-    replies: [
-      'Fitness-Modul ist in Entwicklung. Aber: keine Ausrede — machs trotzdem.',
-      'Kommt bald. Bis dahin: du weißt selbst was zu tun ist.',
-      'Fitness-Agent schläft noch. Ich weck ihn wenn du bereit bist.',
-    ],
-  },
-  {
-    triggers: ['hallo', 'hi', 'hey', 'guten', 'servus', 'moin'],
-    replies: [
-      'Online. Was brauchst du?',
-      'Hier. Was steht an?',
-      'Hallo zurück. Ich warte schon.',
-      'Hey. Kein Smalltalk — was tun wir heute?',
-    ],
-  },
-  {
-    triggers: ['wer bist', 'was bist', 'was kannst', 'wie funktionierst'],
-    replies: [
-      'Ich bin Jarvis — dein persönlicher Assistent für alles was zählt. Reisen, Ziele, Pläne. Ich vergesse nichts.',
-      'KI-Assistent mit Stil. Ich koordiniere deine Module und halte dir den Spiegel vor wenn nötig.',
-      'Jarvis. Ich bin hier um dein Leben zu organisieren, nicht um dich zu beeindrucken. Obwohl — beides ist möglich.',
-    ],
-  },
-];
+function buildSystemPrompt(userName: string): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('de-DE', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+  const hour = now.getHours();
+  const timeOfDay =
+    hour < 6 ? 'mitten in der Nacht' :
+    hour < 12 ? 'am Morgen' :
+    hour < 17 ? 'am Nachmittag' :
+    hour < 21 ? 'am Abend' : 'spät abends';
 
-function mockReply(message: string, userName: string): string {
-  const lower = message.toLowerCase();
+  return `Du bist Jarvis — ein persönlicher KI-Assistent mit Charakter. Kein generischer Chatbot. Du bist direkt, witzig, manchmal ein bisschen frech, aber immer loyal und hilfreich. Du bist wie ein sehr intelligenter bester Freund, der immer ehrlich ist.
 
-  for (const group of MOCK_RESPONSES) {
-    if (group.triggers.some((t) => lower.includes(t))) {
-      const replies = group.replies;
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-  }
+Heute ist ${dateStr}, ${timeOfDay}.
 
-  const fallback = [
-    `Verstanden, ${userName}. Ich arbeite daran.`,
-    'Interessant. Sag mir mehr.',
-    'Ich habe keine direkte Antwort — aber ich lerne. Bald.',
-    'Notiert. Was noch?',
-    'Hmm. Das ist außerhalb meiner aktuellen Module. Aber ich merke es mir.',
-    'Fair enough. Weiter.',
-  ];
-  return fallback[Math.floor(Math.random() * fallback.length)];
+Dein Nutzer heißt ${userName}.
+
+Du verwaltest sein persönliches Lebens-OS mit diesen aktiven Modulen:
+• **Jarvis Hub** — Zentrale Übersicht, Streak, Level, XP
+• **Travel** — Reise-Tracking, 19.000+ Quests in Städten weltweit, Trip-Planung
+• **Sport** — 500 km Jahresziel 2026, Halbmarathon am 25. Oktober 2026, Laufplan Woche 22–43
+• **Gaming** — 10-Spiele Jahresziel, Backlog-Management
+• **Lesen** — 6 Bücher + 6 Hörbücher 2026
+• **Finanzen** — Monatstracking, KK-Schulden tilgen, Sonderausgaben
+• **Hochzeit** — Standesamt 10.10.2026 (Die Schmiede, Schwabach), Freie Trauung 2027
+• **Jahresplan** — 13 Ziele mit XP-Belohnungen
+• **Tasks** — Offene Todos in 9 Kategorien
+• **Wissensbase** — Notizen, Zeitlektüren, Enzyklopädie
+• **Kalender** — Events, ICS-Export
+
+Deine Persönlichkeit:
+- Kurz und präzise. Kein Blabla. Maximal 3–4 Sätze pro Antwort.
+- Du hast Humor, aber du hörst auf zu witzeln wenn der Nutzer ernst ist.
+- Du erinnerst an Dinge die wichtig sind (Hochzeit, Streak, offene Ziele) ohne aufdringlich zu sein.
+- Du antwortest immer auf Deutsch, es sei denn der Nutzer schreibt Englisch.
+- Wenn du etwas nicht weißt, sagst du das kurz und fragst was du stattdessen tun soll.
+- Keine Markdown-Formatierung in Antworten — nur plain text, natürlicher Gesprächsstil.
+- Hin und wieder ein trockener Spruch. Nie erzwungen.`;
 }
 
 export async function POST(req: NextRequest) {
-  const { message, userName } = await req.json();
+  const { message, userName, history } = await req.json() as {
+    message: string;
+    userName?: string;
+    history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  };
 
-  if (!message || typeof message !== 'string') {
-    return NextResponse.json({ error: 'No message' }, { status: 400 });
+  if (!message?.trim()) {
+    return new Response(JSON.stringify({ error: 'No message' }), { status: 400 });
   }
 
-  // Simulate slight network delay for realism
-  await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'No API key configured' }), { status: 500 });
+  }
 
-  const reply = mockReply(message, userName ?? 'Chef');
-  return NextResponse.json({ reply });
+  const name = userName ?? 'Chef';
+  const systemPrompt = buildSystemPrompt(name);
+
+  // Keep last 10 exchanges for context (20 messages)
+  const recentHistory = (history ?? []).slice(-20);
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...recentHistory,
+    { role: 'user', content: message },
+  ];
+
+  async function callOpenRouter(model: string) {
+    return fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://jarvis.vercel.app',
+        'X-Title': 'Jarvis Personal OS',
+      },
+      body: JSON.stringify({ model, messages, stream: true, max_tokens: 400 }),
+    });
+  }
+
+  let res = await callOpenRouter(MODEL);
+  if (!res.ok) {
+    res = await callOpenRouter(FALLBACK_MODEL);
+  }
+  if (!res.ok) {
+    return new Response(JSON.stringify({ error: 'AI unavailable' }), { status: 503 });
+  }
+
+  // Stream the response through
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') {
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              continue;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ token: delta })}\n\n`),
+                );
+              }
+            } catch {
+              // malformed chunk — skip
+            }
+          }
+        }
+      } finally {
+        controller.close();
+        reader.releaseLock();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }

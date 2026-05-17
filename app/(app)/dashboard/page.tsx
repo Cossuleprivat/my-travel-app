@@ -4,6 +4,7 @@ import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
 import { getStreak } from '@/lib/streaks/streak';
+import { MODULE_REGISTRY } from '@/modules/registry';
 import { CharacterCard } from '@/components/dashboard/CharacterCard';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { RecentFeed } from '@/components/dashboard/RecentFeed';
@@ -12,12 +13,14 @@ import { DailyNudge } from '@/components/dashboard/DailyNudge';
 import { JarvisGreeting } from '@/components/jarvis/JarvisGreeting';
 import { JarvisQuickChat } from '@/components/jarvis/JarvisQuickChat';
 
-const MODULES = [
-  { id: 'travel',  label: 'Travel',   icon: '✈', href: '/explore', color: '#40a0d0', desc: 'Reisen, Städte, Quests', active: true  },
-  { id: 'fitness', label: 'Fitness',  icon: '◈', href: '#',        color: '#40c070', desc: 'Coming soon',            active: false },
-  { id: 'finance', label: 'Finance',  icon: '◆', href: '#',        color: '#d48030', desc: 'Coming soon',            active: false },
-  { id: 'goals',   label: 'Goals',    icon: '◎', href: '#',        color: '#a060e0', desc: 'Coming soon',            active: false },
-] as const;
+const COLOR_MAP: Record<string, string> = {
+  blue:   '#40a0d0',
+  green:  '#40c070',
+  amber:  '#d48030',
+  purple: '#a060e0',
+  indigo: '#a060e0',
+  red:    '#f87171',
+};
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
@@ -30,6 +33,14 @@ export default async function DashboardPage() {
   ]);
   const level = calcLevel(stats.xpTotal);
   const name  = profile.display_name ?? 'Traveler';
+
+  // All active modules except travel (travel has its own KPI section)
+  const lifeModules = MODULE_REGISTRY.filter((m) => m.status === 'active' && m.id !== 'travel');
+  // Travel sub-modules
+  const travelLinks = [
+    { href: '/explore', name: 'Erkunden', icon: '✈', color: 'blue' },
+    { href: '/trips',   name: 'Trips',    icon: '◎', color: 'blue' },
+  ];
 
   return (
     <div className="space-y-5">
@@ -45,70 +56,63 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Character card */}
       <CharacterCard
-        name={name}
-        level={level}
-        avatarUrl={avatarUrl}
+        name={name} level={level} avatarUrl={avatarUrl}
         streak={streakData.currentStreak}
         streakAlive={streakData.isAlive}
         mood={streakData.mood}
       />
 
-      <DailyNudge
-        streak={streakData}
-        cityCount={stats.cityCount}
-        questCount={stats.sightCount}
-      />
+      <DailyNudge streak={streakData} cityCount={stats.cityCount} questCount={stats.sightCount} />
+      <StreakBadge streak={streakData.currentStreak} isAlive={streakData.isAlive} longestStreak={streakData.longestStreak} />
 
-      <StreakBadge
-        streak={streakData.currentStreak}
-        isAlive={streakData.isAlive}
-        longestStreak={streakData.longestStreak}
-      />
-
+      {/* Life modules grid */}
       <section>
-        <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted mb-2">Module</p>
+        <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted mb-2">Meine Bereiche</p>
         <div className="grid grid-cols-2 gap-2">
-          {MODULES.map((m) => (
-            <Link
-              key={m.id}
-              href={m.href}
-              className={[
-                'group relative rounded-xl border px-4 py-3 transition-all',
-                m.active
-                  ? 'border-border-subtle bg-bg-surface hover:border-[#40a0d0]/30'
-                  : 'border-border-subtle bg-bg-surface opacity-40 pointer-events-none',
-              ].join(' ')}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg" style={{ color: m.color }}>{m.icon}</span>
-                <span className="font-mono text-sm text-text-primary">{m.label}</span>
-                {!m.active && (
-                  <span className="ml-auto font-mono text-[9px] text-text-muted border border-border-subtle rounded px-1">bald</span>
-                )}
-              </div>
-              <p className="text-[11px] text-text-muted">{m.desc}</p>
-              {m.active && (
+          {lifeModules.map((m) => {
+            const color = COLOR_MAP[m.color] ?? '#40a0d0';
+            return (
+              <Link key={m.id} href={m.href}
+                className="group relative rounded-xl border border-border-subtle bg-bg-surface px-4 py-3 transition-all hover:border-[#40a0d0]/25 active:scale-[0.98]">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-lg">{m.icon}</span>
+                  <span className="font-mono text-sm text-text-primary truncate">{m.name}</span>
+                </div>
+                <p className="text-[10px] text-text-muted truncate">{m.tagline}</p>
                 <div className="absolute inset-x-0 bottom-0 h-px rounded-b-xl transition-opacity opacity-0 group-hover:opacity-100"
-                     style={{ background: `linear-gradient(90deg, transparent, ${m.color}40, transparent)` }} />
-              )}
-            </Link>
-          ))}
+                     style={{ background: `linear-gradient(90deg, transparent, ${color}30, transparent)` }} />
+              </Link>
+            );
+          })}
         </div>
       </section>
 
+      {/* Travel stats */}
       <section>
         <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted mb-2">Travel Stats</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-2">
           <KpiCard label="Kontinente" value={stats.continentCount} total={7} tone="blue" />
           <KpiCard label="Länder"     value={stats.countryCount}             tone="amber" />
           <KpiCard label="Städte"     value={stats.cityCount}                tone="green" />
           <KpiCard label="Sights"     value={stats.sightCount}               tone="purple" />
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          {travelLinks.map((t) => (
+            <Link key={t.href} href={t.href}
+              className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface px-4 py-2.5 hover:border-[#40a0d0]/25 transition-all">
+              <span className="text-base">{t.icon}</span>
+              <span className="font-mono text-sm text-text-secondary">{t.name}</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
+      {/* Jarvis chat widget */}
       <JarvisQuickChat userName={name} />
 
+      {/* Recent activity */}
       {recent.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-2">
