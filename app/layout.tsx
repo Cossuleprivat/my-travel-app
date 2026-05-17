@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LiveOS — Travel Scorer",
-  description: "Track every journey. Level up your explorer.",
+  title: "Jarvis — Dein persönliches Lebens-OS",
+  description: "Jarvis ist dein intelligenter Assistent für Reisen, Abenteuer und alles was zählt.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "LiveOS",
+    title: "Jarvis",
     statusBarStyle: "black-translucent",
   },
   icons: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e0e0f",
+  themeColor: "#060c14",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

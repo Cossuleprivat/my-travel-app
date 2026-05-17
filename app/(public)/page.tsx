@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import JarvisSplash from '@/components/jarvis/JarvisSplash';
 
-export default function RootPage() {
-  redirect('/auth/login');
+export default function LandingPage() {
+  return <JarvisSplash />;
 }

@@ -2,107 +2,64 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { Sidebar } from './Sidebar';
+
+const ITEMS = [
+  { href: '/dashboard', label: 'Hub',    icon: '⬡', activeColor: '#40a0d0' },
+  { href: '/explore',   label: 'Reisen', icon: '✈', activeColor: '#40a0d0' },
+  { href: '/trips',     label: 'Trips',  icon: '◎', activeColor: '#40c070' },
+  { href: '/jarvis',    label: 'Jarvis', icon: 'J', activeColor: '#40a0d0', mono: true },
+  { href: '/profile',   label: 'Profil', icon: '◈', activeColor: '#a060e0' },
+] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
-  const [navOpen, setNavOpen] = useState(false);
-
   return (
-    <>
-      <nav
-        aria-label="Primary"
-        className="fixed bottom-0 inset-x-0 z-40 border-t border-border-subtle bg-bg-surface/90 backdrop-blur-xl"
-      >
-        <ul className="grid grid-cols-5 max-w-2xl mx-auto px-2">
-          <NavLink
-            href="/hub"
-            label="Hub"
-            icon="⬡"
-            active={pathname === '/hub' || pathname.startsWith('/hub/')}
-          />
-          <NavLink
-            href="/calendar"
-            label="Kalender"
-            icon="📅"
-            active={pathname === '/calendar' || pathname.startsWith('/calendar/')}
-          />
-
-          <li className="flex items-end justify-center pb-1.5">
-            <button
-              onClick={() => setNavOpen(true)}
-              aria-label="Menü öffnen"
-              className={[
-                'flex flex-col items-center justify-center gap-0.5',
-                'w-14 h-14 rounded-2xl',
-                'bg-accent-blue text-white',
-                'shadow-lg shadow-accent-blue/40',
-                '-translate-y-3',
-                'hover:shadow-accent-blue/60 hover:-translate-y-3.5',
-                'active:scale-95 transition-all duration-200',
-              ].join(' ')}
-            >
-              <span className="text-xl leading-none" aria-hidden="true">☰</span>
-              <span className="text-[9px] label-mono leading-none">Menü</span>
-            </button>
-          </li>
-
-          <NavLink
-            href="/tasks"
-            label="Tasks"
-            icon="✅"
-            active={pathname === '/tasks' || pathname.startsWith('/tasks/')}
-          />
-          <NavLink
-            href="/profile"
-            label="Profil"
-            icon="◈"
-            active={pathname === '/profile' || pathname.startsWith('/profile/')}
-          />
-        </ul>
-      </nav>
-
-      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
-    </>
-  );
-}
-
-function NavLink({
-  href,
-  label,
-  icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  icon: string;
-  active: boolean;
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className={[
-          'relative flex flex-col items-center justify-center py-3 gap-1 text-xs label-mono transition-colors duration-200',
-          active ? 'text-accent-blue' : 'text-text-muted hover:text-text-secondary',
-        ].join(' ')}
-        aria-current={active ? 'page' : undefined}
-      >
-        {active && (
-          <span className="absolute top-0 h-0.5 w-8 rounded-full bg-accent-blue" />
-        )}
-        <span
-          className={[
-            'text-xl leading-none transition-transform duration-200',
-            active ? 'scale-110' : '',
-          ].join(' ')}
-          aria-hidden="true"
-        >
-          {icon}
-        </span>
-        <span>{label}</span>
-      </Link>
-    </li>
+    <nav
+      aria-label="Hauptnavigation"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-border-subtle backdrop-blur"
+      style={{ background: 'rgba(9,14,22,0.96)' }}
+    >
+      <ul className="grid grid-cols-5 max-w-2xl mx-auto">
+        {ITEMS.map((item) => {
+          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+          const isJarvis = item.href === '/jarvis';
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="relative flex flex-col items-center justify-center py-3 gap-0.5 transition-colors"
+                aria-current={active ? 'page' : undefined}
+                style={{ color: active ? item.activeColor : 'rgba(120,146,168,0.6)' }}
+              >
+                <span
+                  className={[
+                    'flex items-center justify-center leading-none',
+                    isJarvis ? 'h-7 w-7 rounded-full border font-mono font-bold text-sm' : 'text-xl',
+                  ].join(' ')}
+                  style={isJarvis ? {
+                    borderColor: active ? 'rgba(64,160,208,0.6)' : 'rgba(64,160,208,0.2)',
+                    background:  active ? 'rgba(64,160,208,0.1)' : 'transparent',
+                    boxShadow:   active ? '0 0 8px rgba(64,160,208,0.2)' : 'none',
+                    color:       active ? '#40a0d0' : 'rgba(64,160,208,0.35)',
+                  } : {}}
+                  aria-hidden="true"
+                >
+                  {item.icon}
+                </span>
+                <span className="text-[9px] font-mono tracking-wider uppercase">
+                  {item.label}
+                </span>
+                {active && (
+                  <span
+                    className="absolute bottom-0 h-px w-8 rounded-full"
+                    style={{ background: item.activeColor, opacity: 0.6 }}
+                  />
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
