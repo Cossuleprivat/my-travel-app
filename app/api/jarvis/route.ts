@@ -3,8 +3,8 @@ import { requireUserId } from '@/lib/auth/current-user';
 import { gatherJarvisContext } from '@/lib/jarvis/context';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL          = 'deepseek/deepseek-v4-flash:free';
-const FALLBACK_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+const MODEL          = 'openai/gpt-oss-120b:free';
+const FALLBACK_MODEL = 'z-ai/glm-4.5-air:free';
 
 // ─── Tool definitions ────────────────────────────────────────────────────────
 
@@ -130,104 +130,7 @@ export async function POST(req: NextRequest) {
 
   const encoder = new TextEncoder();
 
-  function makeStream(callFn: () => Promise<Response>): ReadableStream {
-    return new ReadableStream({
-      async start(controller) {
-        const send = (obj: unknown) =>
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
-
-        let res = await callFn();
-        if (!res.ok) {
-          // Try fallback
-          res = await fetch(OPENROUTER_URL, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://jarvis.vercel.app',
-              'X-Title': 'Jarvis Personal OS',
-            },
-            body: JSON.stringify({
-              model: FALLBACK_MODEL,
-              messages,
-              tools: TOOLS,
-              tool_choice: 'auto',
-              stream: true,
-              max_tokens: 600,
-            }),
-          });
-        }
-
-        if (!res.ok || !res.body) {
-          send({ error: 'AI nicht erreichbar' });
-          controller.close();
-          return;
-        }
-
-        const reader  = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buf        = '';
-
-        // Accumulate tool call during stream
-        let toolName  = '';
-        let toolArgs  = '';
-        let toolId    = '';
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buf += decoder.decode(value, { stream: true });
-            const lines = buf.split('\n');
-            buf = lines.pop() ?? '';
-
-            for (const line of lines) {
-              if (!line.startsWith('data: ')) continue;
-              const raw = line.slice(6).trim();
-              if (raw === '[DONE]') {
-                // If we accumulated a tool call, send proposal event
-                if (toolName && toolArgs) {
-                  try {
-                    const params = JSON.parse(toolArgs);
-                    send({ type: 'proposal', tool: toolName, callId: toolId, params });
-                  } catch {
-                    send({ token: '\n[Fehler beim Parsen der Aktion]' });
-                  }
-                }
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                return;
-              }
-
-              try {
-                const chunk = JSON.parse(raw);
-                const delta = chunk.choices?.[0]?.delta;
-                if (!delta) continue;
-
-                // Text token
-                if (delta.content) {
-                  send({ token: delta.content });
-                }
-
-                // Tool call fragments
-                const tc = delta.tool_calls?.[0];
-                if (tc) {
-                  if (tc.id)                     toolId    = tc.id;
-                  if (tc.function?.name)         toolName  = tc.function.name;
-                  if (tc.function?.arguments)    toolArgs += tc.function.arguments;
-                }
-              } catch { /* malformed chunk */ }
-            }
-          }
-        } finally {
-          controller.close();
-          reader.releaseLock();
-        }
-      },
-    });
-  }
-
-  const stream = makeStream(() =>
+  const doFetch = (model: string) =>
     fetch(OPENROUTER_URL, {
       method: 'POST',
       headers: {
@@ -237,15 +140,134 @@ export async function POST(req: NextRequest) {
         'X-Title': 'Jarvis Personal OS',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages,
         tools: TOOLS,
         tool_choice: 'auto',
         stream: true,
         max_tokens: 600,
       }),
-    }),
-  );
+    });
+
+  type PumpResult = { producedOutput: boolean };
+
+  function makeStream(): ReadableStream {
+    return new ReadableStream({
+      async start(controller) {
+        const send = (obj: unknown) =>
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+
+        // Stream one model response. Forwards content tokens live and
+        // accumulates a tool call. Sends the proposal event but NOT [DONE]
+        // (the caller decides whether to fall back first). Returns whether
+        // the model produced any real output (content or a tool call) — a
+        // broken model that yields 200 with empty content produces none,
+        // which lets the caller fail over to the fallback model.
+        async function pump(res: Response): Promise<PumpResult> {
+          const reader  = res.body!.getReader();
+          const decoder = new TextDecoder();
+          let buf       = '';
+          let toolName  = '';
+          let toolArgs  = '';
+          let toolId    = '';
+          let producedOutput = false;
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split('\n');
+              buf = lines.pop() ?? '';
+
+              for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                if (raw === '[DONE]') {
+                  if (toolName && toolArgs) {
+                    producedOutput = true;
+                    try {
+                      const params = JSON.parse(toolArgs);
+                      send({ type: 'proposal', tool: toolName, callId: toolId, params });
+                    } catch {
+                      send({ token: '\n[Fehler beim Parsen der Aktion]' });
+                    }
+                  }
+                  return { producedOutput };
+                }
+
+                try {
+                  const chunk = JSON.parse(raw);
+                  const delta = chunk.choices?.[0]?.delta;
+                  if (!delta) continue;
+
+                  if (delta.content) {
+                    producedOutput = true;
+                    send({ token: delta.content });
+                  }
+
+                  const tc = delta.tool_calls?.[0];
+                  if (tc) {
+                    if (tc.id)                  toolId    = tc.id;
+                    if (tc.function?.name)      toolName  = tc.function.name;
+                    if (tc.function?.arguments) toolArgs += tc.function.arguments;
+                  }
+                } catch { /* malformed chunk */ }
+              }
+            }
+            // Stream ended without an explicit [DONE] sentinel.
+            if (toolName && toolArgs) {
+              producedOutput = true;
+              try {
+                const params = JSON.parse(toolArgs);
+                send({ type: 'proposal', tool: toolName, callId: toolId, params });
+              } catch {
+                send({ token: '\n[Fehler beim Parsen der Aktion]' });
+              }
+            }
+            return { producedOutput };
+          } finally {
+            reader.releaseLock();
+          }
+        }
+
+        try {
+          // Primary; on HTTP error fall straight over to the fallback model.
+          let res = await doFetch(MODEL);
+          let usedFallback = false;
+          if (!res.ok || !res.body) {
+            res = await doFetch(FALLBACK_MODEL);
+            usedFallback = true;
+          }
+
+          if (!res.ok || !res.body) {
+            send({ error: 'AI nicht erreichbar' });
+            return;
+          }
+
+          let result = await pump(res);
+
+          // 200 OK but empty output (broken model): fail over once.
+          if (!result.producedOutput && !usedFallback) {
+            const fb = await doFetch(FALLBACK_MODEL);
+            if (fb.ok && fb.body) {
+              result = await pump(fb);
+            }
+          }
+
+          if (!result.producedOutput) {
+            send({ error: 'AI nicht erreichbar' });
+          }
+        } finally {
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        }
+      },
+    });
+  }
+
+  const stream = makeStream();
 
   return new Response(stream, {
     headers: {
