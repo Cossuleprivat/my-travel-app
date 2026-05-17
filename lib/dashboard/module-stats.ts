@@ -12,7 +12,7 @@ export type ModuleStatsInput = {
   weddingTasks: { status: string }[];
   goals: { status: string; xp_reward: number }[];
   tasks: { status: string }[];
-  wikiNotes: { category: string; lektion_nr: number | null }[];
+  wikiNotes: { category: string }[];
 };
 
 const HM_DATE = '2026-10-25';
@@ -39,8 +39,9 @@ export function computeModuleStats(input: ModuleStatsInput, now: Date): ModuleSt
   const daysToStandesamt = daysBetween(STANDESAMT_DATE, now);
 
   const totalXP = input.goals.reduce((s, g) => s + g.xp_reward, 0);
-  const doneXP = input.goals.filter((g) => g.status === 'done').reduce((s, g) => s + g.xp_reward, 0);
-  const goalsDone = input.goals.filter((g) => g.status === 'done').length;
+  const doneGoals = input.goals.filter((g) => g.status === 'done');
+  const doneXP = doneGoals.reduce((s, g) => s + g.xp_reward, 0);
+  const goalsDone = doneGoals.length;
 
   const tasksRemaining = input.tasks.filter((t) => t.status !== 'done').length;
   const tasksDone = input.tasks.filter((t) => t.status === 'done').length;
@@ -58,7 +59,7 @@ export function computeModuleStats(input: ModuleStatsInput, now: Date): ModuleSt
       subline: '10-Slot Backlog · Jahresplan 2026',
     },
     reading: {
-      headline: `${booksDone}/6 Bücher · ${audioDone}/6 Hörbücher`,
+      headline: `${booksDone}/6 Bücher · ${audioDone}/6 Hörbücher`, // /6 = fixed 2026 reading-plan target, not derived from data
       subline: 'Leseplan 2026',
     },
     finance: latestMonth
@@ -84,7 +85,7 @@ export function computeModuleStats(input: ModuleStatsInput, now: Date): ModuleSt
     },
     wiki: {
       headline: `${wikiTotal} Notizen`,
-      subline: `${zeitlekturen} Zeitlektüren · L1–L17`,
+      subline: `${zeitlekturen} Zeitlektüren · L1–L17`, // L1–L17 = fixed Zeitlektüren plan range, not derived from data
     },
   };
 }
@@ -115,7 +116,7 @@ export async function getModuleStats(userId: string): Promise<ModuleStatsResult>
     sb.from('wedding_tasks').select('status').eq('user_id', userId),
     sb.from('user_goals').select('status, xp_reward').eq('user_id', userId).eq('year', 2026),
     sb.from('user_tasks').select('status').eq('user_id', userId),
-    sb.from('user_notes').select('category, lektion_nr').eq('user_id', userId),
+    sb.from('user_notes').select('category').eq('user_id', userId),
   ]);
 
   return computeModuleStats(

@@ -22,8 +22,8 @@ const baseInput: ModuleStatsInput = {
   ],
   tasks: [{ status: 'open' }, { status: 'open' }, { status: 'done' }],
   wikiNotes: [
-    { category: 'zeitlektur', lektion_nr: 1 },
-    { category: 'literatur', lektion_nr: null },
+    { category: 'zeitlektur' },
+    { category: 'literatur' },
   ],
 };
 
@@ -42,12 +42,13 @@ describe('computeModuleStats', () => {
   it('counts done books and audiobooks separately', () => {
     const r = computeModuleStats(baseInput, FIXED_NOW);
     expect(r.reading?.headline).toBe('1/6 Bücher · 1/6 Hörbücher');
+    expect(r.reading?.subline).toBe('Leseplan 2026');
   });
 
   it('uses the latest finance month', () => {
     const r = computeModuleStats(baseInput, FIXED_NOW);
-    expect(r.finance?.headline).toContain('-1.240');
-    expect(r.finance?.subline).toContain('380');
+    expect(r.finance?.headline).toBe('KK -1.240 €');
+    expect(r.finance?.subline).toBe('380 € frei · Tilgungsplan aktiv');
   });
 
   it('falls back when no finance month exists', () => {
