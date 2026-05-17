@@ -21,6 +21,7 @@ Jarvis ist funktional weit, hat aber strukturelle Brüche, die echtes Nutzen ver
 - Jarvis antwortet auf Status-Fragen mit echten Zahlen aus der DB.
 - Alle Modul-Routen rendern fehlerfrei; `tsc --noEmit` und `npm run build` laufen sauber durch.
 - STATUS.md spiegelt den realen Stand.
+- **Die Arbeit ist nach `main` gemerged und auf Vercel-Production auto-deployed** — der Nutzer testet ausschließlich auf der Live-URL, nicht lokal.
 
 ## Nicht-Ziele (bewusst außerhalb Scope)
 
@@ -103,6 +104,16 @@ Jarvis ist funktional weit, hat aber strukturelle Brüche, die echtes Nutzen ver
 - Smoke-Test jeder Route (Dev-Server, im Browser falls möglich, sonst HTTP-Status-Check): `/dashboard`, `/jarvis`, `/tasks`, `/sport`, `/gaming`, `/reading`, `/finance`, `/wedding`, `/goals`, `/wiki`, `/calendar`, `/explore`, `/trips`, `/profile`. Erwartung: HTTP 200, kein Render-Error.
 - Funktionaler Jarvis-Test: „Was steht an?" liefert echte Task-Zahlen; „Leg eine Aufgabe X an" → Proposal-Card → Bestätigen → Eintrag in `user_tasks`.
 - `STATUS.md` aktualisieren: Jarvis kein Mock, Navigation/Routing fertig, bekannte Probleme bereinigt.
+
+### 5. Deployment (Pflicht — Voraussetzung fürs Testen)
+
+Der Nutzer testet ausschließlich auf der Vercel-Production-URL. Vercel deployt automatisch bei Push auf `main`. Daher gilt als finaler, nicht-optionaler Schritt:
+
+- Erst wenn `tsc`, `build`, `test` und der Smoke-Test grün sind: Branch `claude/zealous-bell-2416c4` nach `main` mergen und pushen.
+- Push auf `main` löst den Vercel-Auto-Deploy aus.
+- Nach dem Deploy: kurz verifizieren, dass die Production-URL die neuen Routing-/Dashboard-Änderungen zeigt (Deploy-Status grün, `/` leitet auf `/dashboard`).
+- Vercel-Env-Var `OPENROUTER_API_KEY` ist laut Handover bereits in Production gesetzt — keine Aktion nötig, aber vor dem Jarvis-Live-Test gedanklich verifizieren.
+- Merge/Push nach `main` sind risikobehaftete, geteilte Aktionen — vor dem Ausführen kurz beim Nutzer rückversichern (sofern nicht vorab freigegeben).
 
 ---
 
