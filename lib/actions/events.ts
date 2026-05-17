@@ -19,7 +19,7 @@ export async function addEvent(formData: FormData) {
     notes: (formData.get('notes') as string) || null,
   });
   revalidatePath('/calendar');
-  revalidatePath('/hub');
+  revalidatePath('/dashboard');
 }
 
 export async function deleteEvent(id: string) {
@@ -27,5 +27,5 @@ export async function deleteEvent(id: string) {
   const sb = createServiceClient();
   await sb.from('user_events').delete().eq('id', id).eq('user_id', userId);
   revalidatePath('/calendar');
-  revalidatePath('/hub');
+  revalidatePath('/dashboard');
 }
