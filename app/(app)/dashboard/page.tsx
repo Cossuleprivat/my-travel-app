@@ -30,18 +30,23 @@ const EVENT_DOT: Record<string, string> = {
   green: 'bg-accent-green',
   amber: 'bg-accent-amber',
   purple: 'bg-accent-purple',
+  indigo: 'bg-accent-purple',
   red: 'bg-red-400',
 };
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
+  try {
+    await seedAllFromNotion(userId);
+  } catch (e) {
+    console.error('seedAllFromNotion failed:', e);
+  }
   const [profile, stats, recent, avatarUrl, streakData] = await Promise.all([
     ensureUserProfile(userId),
     getUserStats(userId),
     listRecentActivity(userId, 5),
     getAvatarSignedUrl(userId),
     getStreak(userId),
-    seedAllFromNotion(userId),
   ]);
   const [moduleStats, today] = await Promise.all([
     getModuleStats(userId),
