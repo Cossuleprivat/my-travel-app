@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server';
+import { requireUserId } from '@/lib/auth/current-user';
+import { gatherJarvisContext } from '@/lib/jarvis/context';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL          = 'deepseek/deepseek-v4-flash:free';
@@ -57,7 +59,7 @@ const TOOLS = [
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-function buildSystemPrompt(userName: string): string {
+function buildSystemPrompt(userName: string, liveContext: string): string {
   const now = new Date();
   const dateStr = now.toLocaleDateString('de-DE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -82,7 +84,7 @@ Aktive Module:
 • Hochzeit — Standesamt 10.10.2026 (Die Schmiede, Schwabach)
 • Tasks, Wiki, Kalender, Jahresplan
 
-Tools: Du hast Zugriff auf create_task und create_wiki_page.
+${liveContext ? liveContext + '\n\n' : ''}Tools: Du hast Zugriff auf create_task und create_wiki_page.
 Nutze sie wenn der Nutzer explizit Aufgaben oder Seiten anlegen möchte.
 Der Nutzer muss vorher bestätigen — du schlägst vor, er genehmigt.
 
@@ -111,9 +113,17 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'No API key' }), { status: 500 });
   }
 
+  let liveContext = '';
+  try {
+    const userId = await requireUserId();
+    liveContext = await gatherJarvisContext(userId);
+  } catch (err) {
+    console.error('Jarvis context error:', err);
+  }
+
   const name    = userName ?? 'Chef';
   const messages = [
-    { role: 'system', content: buildSystemPrompt(name) },
+    { role: 'system', content: buildSystemPrompt(name, liveContext) },
     ...(history ?? []).slice(-20),
     { role: 'user', content: message },
   ];
