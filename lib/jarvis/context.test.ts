@@ -33,11 +33,35 @@ describe('formatJarvisContext', () => {
     expect(out).toContain('146 Tage bis Standesamt');
     expect(out).toContain('1/6 Bücher');
     expect(out).toContain('2/10 Spiele');
+    expect(out).toContain('Trauzeugen fragen');
+    expect(out).toMatch(/Trauzeugen fragen.*fällig 2026-05-20/);
   });
 
   it('marks overdue tasks relative to now', () => {
     const out = formatJarvisContext(snap, FIXED_NOW);
     expect(out).toMatch(/Steuer 2025.*überfällig/);
+  });
+
+  it('caps the displayed task list at 5', () => {
+    const manyTasks = Array.from({ length: 7 }, (_, i) => ({
+      title: `T${i + 1}`,
+      area: 'allgemein',
+      deadline: null,
+    }));
+    const out = formatJarvisContext({ ...snap, openTasks: manyTasks }, FIXED_NOW);
+    expect(out).toContain('T1');
+    expect(out).toContain('T5');
+    expect(out).not.toContain('T6');
+    expect(out).not.toContain('T7');
+    expect(out).toMatch(/"T1" \(allgemein\)/);
+  });
+
+  it('renders null finance fields as 0', () => {
+    const out = formatJarvisContext(
+      { ...snap, financeKkSaldo: null, financeKkFree: null },
+      FIXED_NOW,
+    );
+    expect(out).toContain('KK 0 € · 0 € frei');
   });
 
   it('handles empty task list without throwing', () => {
