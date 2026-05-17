@@ -1,28 +1,41 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { JarvisToolProposal } from './JarvisToolProposal';
 
-type Message = { role: 'user' | 'jarvis'; text: string };
+type Params      = Record<string, string | undefined>;
+type TextMsg     = { kind: 'text'; role: 'user' | 'jarvis'; text: string };
+type ProposalMsg = { kind: 'proposal'; tool: string; params: Params };
+type Msg = TextMsg | ProposalMsg;
 
 const CHIPS = ['Was steht an?', 'Motivier mich', 'Sport-Status'];
 
 export function JarvisQuickChat({ userName }: { userName: string }) {
-  const [messages, setMessages]   = useState<Message[]>([]);
+  const [messages, setMessages]   = useState<Msg[]>([]);
   const [input, setInput]         = useState('');
   const [streaming, setStreaming] = useState(false);
   const bottomRef                 = useRef<HTMLDivElement>(null);
+
+  const replaceLast = (msg: Msg) =>
+    setMessages((prev) => { const next = [...prev]; next[next.length - 1] = msg; return next; });
+
+  const replaceAt = (idx: number, msg: Msg) =>
+    setMessages((prev) => { const next = [...prev]; next[idx] = msg; return next; });
 
   const send = useCallback(async (text?: string) => {
     const msg = (text ?? input).trim();
     if (!msg || streaming) return;
     setInput('');
 
-    const history = messages.map((m) => ({
-      role: m.role === 'jarvis' ? 'assistant' as const : 'user' as const,
-      content: m.text,
-    }));
+    const history = messages
+      .filter((m): m is TextMsg => m.kind === 'text')
+      .map((m) => ({ role: m.role === 'jarvis' ? 'assistant' as const : 'user' as const, content: m.text }));
 
-    setMessages((prev) => [...prev, { role: 'user', text: msg }, { role: 'jarvis', text: '' }]);
+    setMessages((prev) => [
+      ...prev,
+      { kind: 'text', role: 'user', text: msg },
+      { kind: 'text', role: 'jarvis', text: '' },
+    ]);
     setStreaming(true);
 
     try {
@@ -34,7 +47,7 @@ export function JarvisQuickChat({ userName }: { userName: string }) {
 
       if (!res.ok || !res.body) throw new Error('failed');
 
-      const reader = res.body.getReader();
+      const reader  = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = '';
       let acc = '';
@@ -50,30 +63,42 @@ export function JarvisQuickChat({ userName }: { userName: string }) {
           const data = line.slice(6).trim();
           if (data === '[DONE]') break;
           try {
-            const { token } = JSON.parse(data);
-            if (token) {
-              acc += token;
+            const parsed = JSON.parse(data);
+            if (parsed.type === 'proposal') {
+              replaceLast({ kind: 'proposal', tool: parsed.tool, params: parsed.params });
+            } else if (parsed.token) {
+              acc += parsed.token;
               const snap = acc;
-              setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = { role: 'jarvis', text: snap };
-                return next;
-              });
+              replaceLast({ kind: 'text', role: 'jarvis', text: snap });
             }
-          } catch { /* skip */ }
+          } catch { /* malformed chunk */ }
         }
       }
     } catch {
-      setMessages((prev) => {
-        const next = [...prev];
-        next[next.length - 1] = { role: 'jarvis', text: 'Fehler. Nochmal?' };
-        return next;
-      });
+      replaceLast({ kind: 'text', role: 'jarvis', text: 'Fehler. Nochmal?' });
     } finally {
       setStreaming(false);
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [input, streaming, messages, userName]);
+
+  async function handleConfirm(idx: number, tool: string, params: Params) {
+    try {
+      const res  = await fetch('/api/jarvis/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool, params }),
+      });
+      const json = await res.json();
+      replaceAt(idx, { kind: 'text', role: 'jarvis', text: json.message ?? 'Erledigt.' });
+    } catch {
+      replaceAt(idx, { kind: 'text', role: 'jarvis', text: 'Fehler beim Ausführen. Versuch nochmal.' });
+    }
+  }
+
+  function handleReject(idx: number) {
+    replaceAt(idx, { kind: 'text', role: 'jarvis', text: 'Okay, kein Problem.' });
+  }
 
   return (
     <section className="rounded-xl bg-bg-surface border border-border-subtle overflow-hidden">
@@ -84,29 +109,51 @@ export function JarvisQuickChat({ userName }: { userName: string }) {
 
       {messages.length > 0 && (
         <div className="max-h-52 overflow-y-auto px-4 py-3 space-y-3">
-          {messages.map((m, i) => (
-            <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {m.role === 'jarvis' && (
-                <div className="h-6 w-6 shrink-0 rounded-full bg-[#0a1f33] border border-[#40a0d0]/30 flex items-center justify-center">
-                  <span className="font-mono text-[9px] text-[#40a0d0]">J</span>
+          {messages.map((m, i) => {
+            if (m.kind === 'proposal') {
+              return (
+                <div key={i} className="flex gap-2 justify-start">
+                  <div className="h-6 w-6 shrink-0 rounded-full bg-[#0a1f33] border border-[#40a0d0]/30 flex items-center justify-center mt-0.5">
+                    <span className="font-mono text-[9px] text-[#40a0d0]">J</span>
+                  </div>
+                  <div className="flex-1">
+                    <JarvisToolProposal
+                      tool={m.tool}
+                      params={m.params}
+                      onConfirm={(p) => handleConfirm(i, m.tool, p)}
+                      onReject={() => handleReject(i)}
+                    />
+                  </div>
                 </div>
-              )}
-              <div className={[
-                'max-w-[75%] rounded-xl px-3 py-2 text-sm leading-snug min-h-[2rem]',
-                m.role === 'user'
-                  ? 'bg-[#40a0d0]/15 text-text-primary rounded-br-none'
-                  : 'bg-bg-elevated text-text-secondary rounded-bl-none border border-border-subtle',
-              ].join(' ')}>
-                {m.text || (
-                  <span className="inline-flex gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </span>
+              );
+            }
+
+            return (
+              <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {m.role === 'jarvis' && (
+                  <div className="h-6 w-6 shrink-0 rounded-full bg-[#0a1f33] border border-[#40a0d0]/30 flex items-center justify-center">
+                    <span className="font-mono text-[9px] text-[#40a0d0]">J</span>
+                  </div>
                 )}
+                <div
+                  className={[
+                    'max-w-[75%] rounded-xl px-3 py-2 text-sm leading-snug min-h-[2rem]',
+                    m.role === 'user'
+                      ? 'bg-[#40a0d0]/15 text-text-primary rounded-br-none'
+                      : 'bg-bg-elevated text-text-secondary rounded-bl-none border border-border-subtle',
+                  ].join(' ')}
+                >
+                  {m.text || (
+                    <span className="inline-flex gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-text-muted animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div ref={bottomRef} />
         </div>
       )}
@@ -116,8 +163,12 @@ export function JarvisQuickChat({ userName }: { userName: string }) {
           <p className="text-text-muted text-xs mb-3">Frag mich was — ich kenne alle deine Module.</p>
           <div className="flex flex-wrap justify-center gap-2">
             {CHIPS.map((q) => (
-              <button key={q} type="button" onClick={() => send(q)}
-                className="rounded-full border border-border-subtle bg-bg-elevated px-3 py-1 text-[11px] text-text-muted hover:border-[#40a0d0]/40 hover:text-text-secondary transition-colors">
+              <button
+                key={q}
+                type="button"
+                onClick={() => send(q)}
+                className="rounded-full border border-border-subtle bg-bg-elevated px-3 py-1 text-[11px] text-text-muted hover:border-[#40a0d0]/40 hover:text-text-secondary transition-colors"
+              >
                 {q}
               </button>
             ))}
@@ -126,15 +177,22 @@ export function JarvisQuickChat({ userName }: { userName: string }) {
       )}
 
       <div className="flex gap-2 border-t border-border-subtle px-3 py-2">
-        <input type="text" value={input}
+        <input
+          type="text"
+          value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
           placeholder="Schreib Jarvis..."
           disabled={streaming}
-          className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none min-w-0" />
-        <button type="button" onClick={() => send()} disabled={!input.trim() || streaming}
+          className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none min-w-0"
+        />
+        <button
+          type="button"
+          onClick={() => send()}
+          disabled={!input.trim() || streaming}
           className="shrink-0 h-8 w-8 rounded-lg bg-[#40a0d0]/10 border border-[#40a0d0]/20 flex items-center justify-center text-[#40a0d0] hover:bg-[#40a0d0]/20 disabled:opacity-30 transition-colors"
-          aria-label="Senden">
+          aria-label="Senden"
+        >
           ▲
         </button>
       </div>
