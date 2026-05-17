@@ -21,7 +21,7 @@ export default async function LoginPage({
           </div>
 
           <div className="rounded-2xl border border-border-subtle/80 bg-bg-surface/70 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
-            <LoginForm redirectTo={sp.redirect ?? '/hub'} />
+            <LoginForm redirectTo={sp.redirect ?? '/dashboard'} />
           </div>
 
           <p className="text-center text-sm text-text-muted">

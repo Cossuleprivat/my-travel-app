@@ -75,7 +75,7 @@ export async function equipItemAction(itemSlug: string, category: string) {
 
   revalidatePath('/profile');
   revalidatePath('/profile/items');
-  revalidatePath('/hub');
+  revalidatePath('/dashboard');
 }
 
 export async function unequipItemAction(category: string) {
@@ -100,5 +100,5 @@ export async function unequipItemAction(category: string) {
 
   revalidatePath('/profile');
   revalidatePath('/profile/items');
-  revalidatePath('/hub');
+  revalidatePath('/dashboard');
 }

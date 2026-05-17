@@ -13,5 +13,5 @@ export async function signUp(_formData: FormData): Promise<AuthResult> {
 }
 
 export async function signOut() {
-  redirect('/hub');
+  redirect('/dashboard');
 }

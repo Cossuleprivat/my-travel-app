@@ -3,10 +3,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Auth routes and root → redirect to hub (no login needed)
+  // Auth routes and root → redirect to dashboard (no login needed)
   if (path === '/' || path === '/auth/login' || path === '/auth/signup') {
     const url = req.nextUrl.clone();
-    url.pathname = '/hub';
+    url.pathname = '/dashboard';
     url.search = '';
     return NextResponse.redirect(url);
   }
