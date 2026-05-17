@@ -1,6 +1,7 @@
 # Jarvis — Status & Roadmap
 
 > Stand: Mai 2026 · Repo: `Cossuleprivat/jarvis`
+> Stand: 2026-05-17 · Routing fix + Dashboard-Hub + Jarvis Live-Kontext live.
 
 ---
 
@@ -35,7 +36,7 @@
 | **Trip-Planer** | Reisen erstellen, Stops sequenzieren, Quests pro Stop, Completion-Tracking |
 | **KPI-Dashboard** | 7 Kontinente, Länder, Städte, Sights live gezählt |
 
-### ✅ Life-Module (vollständig implementiert, Navigation fehlt noch)
+### ✅ Life-Module (vollständig implementiert, über Sidebar erreichbar)
 
 | Modul | Was es macht |
 |---|---|
@@ -49,16 +50,16 @@
 | **Tasks** | 9 Bereiche, Prioritäten (High/Med/Low), Deadlines, Status open/done |
 | **Jahres-Ziele** | Ziele pro Lebensbereich, XP-Belohnungen, Fortschritts-Balken |
 
-### ✅ Jarvis-UI (vollständig, Backend noch Mock)
+### ✅ Jarvis-UI & -Backend (vollständig)
 
 | Feature | Details |
 |---|---|
-| **Splash-Screen** | Cinematic Entry mit Click-to-Enter, animierter Orb, Scan-Lines |
-| **Jarvis Hub** | Dashboard als Kommandozentrale mit Modul-Grid, Greeting, Character-Card |
+| **Splash-Screen** | Cinematic Entry mit Click-to-Enter, animierter Orb, Scan-Lines (nicht im Routing-Pfad) |
+| **Jarvis Hub** | `/dashboard` als Kommandozentrale: Greeting, Character-Card, Heute-Übersicht, Live-Modul-Grid |
 | **Quick-Chat** | Widget direkt im Dashboard, Vorschlags-Chips |
 | **Vollchat** | Eigene `/jarvis`-Seite mit Gesprächsverlauf, Kontext, Typing-Indikator |
-| **Mock-API** | Persönlichkeits-getriebene Antworten (Reisen, Motivation, Fitness, Begrüßung) |
-| **Navigation** | BottomNav 5 Tabs: Hub · Reisen · Trips · Jarvis · Profil |
+| **KI-Backend** | Echter OpenRouter-Stream (`openai/gpt-oss-120b:free` → Fallback `z-ai/glm-4.5-air:free`), Failover bei HTTP-Fehler **und** leerem Content, Tool-Calling mit Bestätigung, Live-Kontext aus allen Modulen |
+| **Navigation** | Slide-in Sidebar — alle Module erreichbar; Einstieg `/` → `/dashboard` |
 
 ---
 
@@ -66,9 +67,8 @@
 
 | Problem | Priorität | Details |
 |---|---|---|
-| **Navigation unvollständig** | 🔴 KRITISCH | BottomNav zeigt nur 5 Tabs. Life-Module (Sport, Gaming, Lesen, Finanzen, Hochzeit, Wiki, Kalender, Tasks, Ziele) sind erreichbar, aber nicht sichtbar in der Nav. Module-Grid im Hub zeigt noch "Coming Soon" für fertige Features. |
-| **Jarvis KI ist ein Mock** | 🔴 KRITISCH | Kein echter Claude-Call. Anthropic API-Key noch nicht eingebunden. |
 | **Push Notifications** | 🟡 MITTEL | DB-Tabelle und Toggle existieren, Ende-zu-Ende noch nicht aktiv. |
+| **Coaching-Modul** | 🟢 NIEDRIG | Steht auf `coming_soon`, noch nicht implementiert. |
 | **Vercel Projektname** | 🟢 NIEDRIG | Heißt noch `my-travel-app-3sfb` intern. Kann in Vercel-Dashboard umbenannt werden. |
 
 ---
@@ -145,25 +145,20 @@
 | Backend | Next.js App Router (Server Components + Server Actions) |
 | Datenbank | Supabase (PostgreSQL + Storage) |
 | Auth | Supabase Auth |
-| KI | Replicate (Avatar), Anthropic Claude Haiku (Jarvis, geplant) |
+| KI | Replicate (Avatar), OpenRouter Free-Tier (Jarvis: gpt-oss-120b → glm-4.5-air) |
 | Deployment | Vercel |
 | Avatar | Replicate (Flux Pixel-Art Modell) |
 
 ---
 
-## Kosten-Abschätzung Jarvis KI
+## Kosten Jarvis KI
 
-> Modell: `claude-haiku-4-5` — günstigstes Claude-Modell
-
-| Nutzung | Tokens/Monat | Kosten/Monat |
-|---|---|---|
-| 10 Chats/Tag × 200 Token | ~60.000 | ~$0.05 |
-| 30 Chats/Tag × 500 Token | ~450.000 | ~$0.40 |
-| Mit Kontext-System-Prompt (~500 Token fix) | +450.000 | +$0.40 |
-| **Realistisch gesamt** | **~500.000** | **~$0.50–1.00** |
-
-Haiku kostet $0.80/1M Input-Token, $4.00/1M Output-Token. Bei persönlicher Nutzung bleibt das sehr günstig.
+> Jarvis nutzt ausschließlich **OpenRouter Free-Tier-Modelle** — Kosten: **0 €**.
+> Primary `openai/gpt-oss-120b:free`, Fallback `z-ai/glm-4.5-air:free`.
+> Harte Vorgabe: muss kostenlos bleiben. Free-Modelle können zeitweise
+> rate-limited oder fehlerhaft sein — daher Failover bei HTTP-Fehler **und**
+> leerem Content auf das Fallback-Modell.
 
 ---
 
-*Zuletzt aktualisiert: Mai 2026*
+*Zuletzt aktualisiert: 2026-05-17*
