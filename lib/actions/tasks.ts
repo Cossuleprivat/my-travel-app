@@ -18,6 +18,27 @@ export async function addTask(formData: FormData) {
   revalidatePath('/tasks');
 }
 
+export async function updateTask(id: string, formData: FormData) {
+  const userId = await requireUserId();
+  const sb = createServiceClient();
+  const title = String(formData.get('title') ?? '').trim();
+  if (!title) return;
+  await sb
+    .from('user_tasks')
+    .update({
+      title,
+      area: (formData.get('area') as string) || 'allgemein',
+      priority: (formData.get('priority') as string) || 'medium',
+      deadline: (formData.get('deadline') as string) || null,
+      notes: (formData.get('notes') as string) || null,
+    })
+    .eq('id', id)
+    .eq('user_id', userId);
+  revalidatePath('/tasks');
+  revalidatePath('/hub');
+  revalidatePath('/calendar');
+}
+
 export async function setTaskStatus(id: string, status: 'open' | 'in_progress' | 'done') {
   const userId = await requireUserId();
   const sb = createServiceClient();

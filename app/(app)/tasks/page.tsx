@@ -85,7 +85,12 @@ export default async function TasksPage() {
           <h2 className="text-xs label-mono text-text-muted">{group.label}</h2>
           <div className="rounded-xl bg-bg-surface border border-border-subtle overflow-hidden divide-y divide-border-subtle">
             {group.tasks.map((task) => (
-              <TaskItem key={task.id} task={task} daysLeft={daysLeft(task.deadline)} />
+              <TaskItem
+                key={task.id}
+                task={task}
+                daysLeft={daysLeft(task.deadline)}
+                areas={AREAS.slice(1).map((a) => ({ id: a.id, label: a.label }))}
+              />
             ))}
           </div>
         </section>
