@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MODULE_REGISTRY } from '@/modules/registry';
-import { travelModule } from '@/modules/travel/manifest';
 
 const COLOR_TILE: Record<string, string> = {
   blue:   'bg-[#40a0d0]/15 text-[#40a0d0]',
@@ -29,9 +28,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const lifeModules = MODULE_REGISTRY.filter(
-    (m) => m.status === 'active' && m.id !== 'travel',
-  );
+  const lifeModules = MODULE_REGISTRY.filter((m) => m.status === 'active');
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -39,13 +36,11 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }, [open]);
 
   function Item({
-    href, name, icon, color, mono, exact,
+    href, name, icon, color, mono,
   }: {
-    href: string; name: string; icon: string; color: string; mono?: boolean; exact?: boolean;
+    href: string; name: string; icon: string; color: string; mono?: boolean;
   }) {
-    const active = exact
-      ? pathname === href
-      : pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
+    const active = pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
     const isJ = mono && icon === 'J';
     return (
       <Link
@@ -159,16 +154,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </p>
             {lifeModules.map((m) => (
               <Item key={m.id} href={m.href} name={m.name} icon={m.icon} color={m.color} />
-            ))}
-          </nav>
-
-          {/* Travel-Bereich (manifest-getrieben) */}
-          <nav className="space-y-0.5">
-            <p className="px-3 pb-2 text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted">
-              {travelModule.name}
-            </p>
-            {(travelModule.sections ?? []).map((s) => (
-              <Item key={s.href} href={s.href} name={s.label} icon={s.icon} color="blue" exact={s.href === '/travel'} />
             ))}
           </nav>
         </div>
