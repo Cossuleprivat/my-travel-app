@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { getUserStats, listRecentActivity, ensureUserProfile } from '@/lib/data/queries';
+import { getUserStats, listRecentActivity, ensureUserProfile, listTrips } from '@/lib/data/queries';
+import { pickNextTrip } from '@/lib/travel/next-trip';
 import { calcLevel } from '@/lib/xp';
 import { requireUserId } from '@/lib/auth/current-user';
 import { getAvatarSignedUrl } from '@/lib/avatar/storage';
@@ -48,20 +49,27 @@ export default async function DashboardPage() {
     getAvatarSignedUrl(userId),
     getStreak(userId),
   ]);
-  const [moduleStats, today] = await Promise.all([
+  const [moduleStats, today, trips] = await Promise.all([
     getModuleStats(userId),
     getTodayOverview(userId),
+    listTrips(userId),
   ]);
+  const nextTrip = pickNextTrip(trips, new Date());
   const level = calcLevel(stats.xpTotal);
   const name  = profile.display_name ?? 'Traveler';
 
-  // All active modules except travel (travel has its own KPI section)
+  // All active modules except travel (travel has its own highlight section)
   const lifeModules = MODULE_REGISTRY.filter((m) => m.status === 'active' && m.id !== 'travel');
-  // Travel sub-modules
-  const travelLinks = [
-    { href: '/explore', name: 'Erkunden', icon: '✈', color: 'blue' },
-    { href: '/trips',   name: 'Trips',    icon: '◎', color: 'blue' },
-  ];
+
+  const tripRange =
+    nextTrip && (nextTrip.start_date || nextTrip.end_date)
+      ? [nextTrip.start_date, nextTrip.end_date]
+          .filter(Boolean)
+          .map((d) =>
+            new Date(d as string).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }),
+          )
+          .join(' – ')
+      : null;
 
   return (
     <div className="space-y-5">
@@ -189,24 +197,41 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Travel stats */}
+      {/* Travel highlight */}
       <section>
-        <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted mb-2">Travel Stats</p>
-        <div className="grid grid-cols-2 gap-3 mb-2">
-          <KpiCard label="Kontinente" value={stats.continentCount} total={7} tone="blue" />
-          <KpiCard label="Länder"     value={stats.countryCount}             tone="amber" />
-          <KpiCard label="Städte"     value={stats.cityCount}                tone="green" />
-          <KpiCard label="Sights"     value={stats.sightCount}               tone="purple" />
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted">Travel</p>
+          <Link href="/travel" className="text-accent-blue text-xs label-mono">Bereich öffnen →</Link>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {travelLinks.map((t) => (
-            <Link key={t.href} href={t.href}
-              className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface px-4 py-2.5 hover:border-[#40a0d0]/25 transition-all">
-              <span className="text-base">{t.icon}</span>
-              <span className="font-mono text-sm text-text-secondary">{t.name}</span>
-            </Link>
-          ))}
-        </div>
+        <Link href="/travel" className="block">
+          <div className="grid grid-cols-2 gap-3 mb-2">
+            <KpiCard label="Kontinente" value={stats.continentCount} total={7} tone="blue" />
+            <KpiCard label="Länder"     value={stats.countryCount}             tone="amber" />
+            <KpiCard label="Städte"     value={stats.cityCount}                tone="green" />
+            <KpiCard label="Sights"     value={stats.sightCount}               tone="purple" />
+          </div>
+        </Link>
+        {nextTrip ? (
+          <Link
+            href={`/travel/trips/${nextTrip.id}`}
+            className="block rounded-xl border border-[#40a0d0]/25 bg-bg-surface p-4 transition-all hover:border-[#40a0d0]/40 active:scale-[0.99]"
+          >
+            <p className="text-[10px] label-mono text-accent-blue">Nächster Trip</p>
+            <div className="flex items-start justify-between gap-3 mt-1">
+              <p className="text-text-primary text-sm truncate">{nextTrip.title}</p>
+              {tripRange && (
+                <span className="text-text-muted text-[11px] label-mono shrink-0">{tripRange}</span>
+              )}
+            </div>
+          </Link>
+        ) : (
+          <Link
+            href="/travel/trips"
+            className="block rounded-xl border border-dashed border-border-subtle bg-bg-surface px-4 py-3 text-center text-xs text-text-secondary hover:border-[#40a0d0]/25 transition-colors"
+          >
+            Kein geplanter Trip — Trip planen →
+          </Link>
+        )}
       </section>
 
       {/* Jarvis chat widget */}
@@ -217,7 +242,7 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted">Zuletzt</p>
-            <Link href="/explore" className="text-accent-blue text-xs label-mono">Erkunden →</Link>
+            <Link href="/travel/explore" className="text-accent-blue text-xs label-mono">Erkunden →</Link>
           </div>
           <RecentFeed items={recent} />
         </section>
