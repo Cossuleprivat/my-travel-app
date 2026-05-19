@@ -59,7 +59,7 @@ export async function markContinentVisited(continentId: string) {
   // Ignore unique-violation (already visited): Postgres code 23505.
   if (error && error.code !== '23505') throw error;
   if (!error) await awardXpAndCheckAchievements(userId, XP_EVENTS.continentVisit);
-  revalidatePath('/explore');
+  revalidatePath('/travel/explore');
   revalidatePath('/dashboard');
 }
 
@@ -75,7 +75,7 @@ export async function unmarkContinentVisited(continentId: string) {
     .delete().eq('user_id', userId).eq('continent_id', continentId);
   if (error) throw error;
   await awardXpAndCheckAchievements(userId, -XP_EVENTS.continentVisit);
-  revalidatePath('/explore');
+  revalidatePath('/travel/explore');
   revalidatePath('/dashboard');
 }
 
@@ -87,7 +87,7 @@ export async function markCountryVisited(countryId: string) {
     .insert({ user_id: userId, country_id: countryId });
   if (error && error.code !== '23505') throw error;
   if (!error) await awardXpAndCheckAchievements(userId, XP_EVENTS.countryVisit);
-  revalidatePath('/explore');
+  revalidatePath('/travel/explore');
   revalidatePath('/dashboard');
 }
 
@@ -103,7 +103,7 @@ export async function unmarkCountryVisited(countryId: string) {
     .eq('user_id', userId).eq('country_id', countryId);
   if (error) throw error;
   await awardXpAndCheckAchievements(userId, -XP_EVENTS.countryVisit);
-  revalidatePath('/explore');
+  revalidatePath('/travel/explore');
   revalidatePath('/dashboard');
 }
 
@@ -144,7 +144,7 @@ export async function markCityVisited(input: CityVisitInput) {
   if (input.notes && input.notes.trim().length > 0) xp += XP_EVENTS.noteBonus;
 
   await awardXpAndCheckAchievements(userId, xp);
-  revalidatePath('/explore');
+  revalidatePath('/travel/explore');
   revalidatePath('/dashboard');
   revalidatePath('/profile');
   return { alreadyTracked: false };
@@ -180,6 +180,6 @@ export async function toggleSightCompleted(questId: string) {
   }
 
   if (xpDelta !== 0) await awardXpAndCheckAchievements(userId, xpDelta);
-  revalidatePath('/explore', 'layout');
+  revalidatePath('/travel/explore', 'layout');
   revalidatePath('/dashboard');
 }
