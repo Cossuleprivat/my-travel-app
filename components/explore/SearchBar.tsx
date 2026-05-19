@@ -34,9 +34,9 @@ export function SearchBar() {
           )}
           {results.map((r) => {
             const href =
-              r.kind === 'continent' ? `/explore/${r.slug}` :
-              r.kind === 'country'   ? `/explore/${r.continentSlug}/${r.slug}` :
-              `/explore/${r.continentSlug}/${r.countrySlug}/${r.slug}`;
+              r.kind === 'continent' ? `/travel/explore/${r.slug}` :
+              r.kind === 'country'   ? `/travel/explore/${r.continentSlug}/${r.slug}` :
+              `/travel/explore/${r.continentSlug}/${r.countrySlug}/${r.slug}`;
             const subtitle =
               r.kind === 'continent' ? 'Continent' :
               r.kind === 'country'   ? 'Country' :

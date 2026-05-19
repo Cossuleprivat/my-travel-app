@@ -29,7 +29,7 @@ export function TripCard({ trip }: { trip: TripWithStopCount }) {
 
   return (
     <Link
-      href={`/trips/${trip.id}`}
+      href={`/travel/trips/${trip.id}`}
       className="block rounded-xl bg-bg-surface border border-border-subtle p-4 hover:border-accent-blue/40 hover:bg-bg-elevated transition-colors"
     >
       <div className="flex items-start justify-between gap-2">
