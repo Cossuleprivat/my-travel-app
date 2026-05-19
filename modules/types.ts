@@ -16,8 +16,6 @@ export type LiveOSModule = {
   href: string;
   profileDataHref: string;
   status: ModuleStatus;
-  /** Bereich-Startseite (Sub-App-Home). Wenn gesetzt, ist dies ein navigierbarer Bereich. */
-  home?: string;
   /** Sub-Navigation des Bereichs (Tab-Leiste + Sidebar-Unterpunkte). */
   sections?: ModuleSection[];
 };

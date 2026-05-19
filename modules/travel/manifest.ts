@@ -9,7 +9,6 @@ export const travelModule: LiveOSModule = {
   href: '/travel',
   profileDataHref: '/api/modules/travel/profile-data',
   status: 'active',
-  home: '/travel',
   sections: [
     { label: 'Übersicht', href: '/travel',          icon: '⬡' },
     { label: 'Erkunden',  href: '/travel/explore',  icon: '✈' },
