@@ -3,10 +3,16 @@ import type { LiveOSModule } from '@/modules/types';
 export const travelModule: LiveOSModule = {
   id: 'travel',
   name: 'Travel Scorer',
-  tagline: 'Track cities, complete quests, level up as an explorer',
+  tagline: 'Städte tracken, Quests abschließen, als Explorer leveln',
   icon: '✈',
   color: 'blue',
-  href: '/dashboard',
+  href: '/travel',
   profileDataHref: '/api/modules/travel/profile-data',
   status: 'active',
+  home: '/travel',
+  sections: [
+    { label: 'Übersicht', href: '/travel',          icon: '⬡' },
+    { label: 'Erkunden',  href: '/travel/explore',  icon: '✈' },
+    { label: 'Trips',     href: '/travel/trips',    icon: '◎' },
+  ],
 };
