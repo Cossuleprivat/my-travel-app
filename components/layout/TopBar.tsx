@@ -6,6 +6,7 @@ import { MODULE_REGISTRY } from '@/modules/registry';
 const ROUTE_LABELS: Record<string, { label: string; icon: string }> = {
   '/dashboard':       { label: 'Hub',           icon: '⬡' },
   '/jarvis':          { label: 'Jarvis',        icon: 'J' },
+  // /travel/* muss vor /travel stehen: die Prefix-Schleife in getPageMeta iteriert in Einfügereihenfolge.
   '/travel/explore':  { label: 'Erkunden',      icon: '✈' },
   '/travel/trips':    { label: 'Trips',         icon: '◎' },
   '/travel':          { label: 'Travel',        icon: '✈' },

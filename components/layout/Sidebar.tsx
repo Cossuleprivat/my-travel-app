@@ -39,11 +39,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }, [open]);
 
   function Item({
-    href, name, icon, color, mono,
+    href, name, icon, color, mono, exact,
   }: {
-    href: string; name: string; icon: string; color: string; mono?: boolean;
+    href: string; name: string; icon: string; color: string; mono?: boolean; exact?: boolean;
   }) {
-    const active = pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
+    const active = exact
+      ? pathname === href
+      : pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
     const isJ = mono && icon === 'J';
     return (
       <Link
@@ -166,7 +168,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               {travelModule.name}
             </p>
             {(travelModule.sections ?? []).map((s) => (
-              <Item key={s.href} href={s.href} name={s.label} icon={s.icon} color="blue" />
+              <Item key={s.href} href={s.href} name={s.label} icon={s.icon} color="blue" exact={s.href === '/travel'} />
             ))}
           </nav>
         </div>
