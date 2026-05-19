@@ -11,7 +11,11 @@ export type TripLike = {
  *   1. ein aktiver Trip (heute zwischen start_date und end_date; offenes Ende zählt),
  *   2. sonst der nächste zukünftige (kleinstes start_date > heute),
  *   3. sonst null.
- * Pure: keine IO, deterministisch über `now`.
+ * Bei mehreren aktiven Trips wird der mit dem frühesten start_date bevorzugt.
+ * `status` wird bewusst nicht gefiltert (für strukturelle Kompatibilität mit
+ * TripWithStopCount mitgeführt). Pure: keine IO, deterministisch über `now`.
+ * Hinweis: `now` wird via `.toISOString()` in ein UTC-Datum umgerechnet —
+ * Aufrufer sollten ggf. eine lokal-korrekte `Date`-Instanz übergeben.
  */
 export function pickNextTrip<T extends TripLike>(trips: T[], now: Date): T | null {
   const today = now.toISOString().slice(0, 10);
