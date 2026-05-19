@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MODULE_REGISTRY } from '@/modules/registry';
+import { travelModule } from '@/modules/travel/manifest';
 
 const COLOR_TILE: Record<string, string> = {
   blue:   'bg-[#40a0d0]/15 text-[#40a0d0]',
@@ -19,11 +20,6 @@ const CORE = [
   { href: '/jarvis',    name: 'Jarvis Chat', icon: 'J',   color: 'blue', mono: true },
   { href: '/calendar',  name: 'Kalender',    icon: '📅', color: 'amber'  },
   { href: '/profile',   name: 'Profil',      icon: '◈',  color: 'purple' },
-];
-
-const TRAVEL = [
-  { href: '/explore', name: 'Erkunden',  icon: '✈', color: 'blue' },
-  { href: '/trips',   name: 'Trips',     icon: '◎', color: 'blue' },
 ];
 
 interface SidebarProps {
@@ -164,12 +160,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             ))}
           </nav>
 
-          {/* Travel sub-nav */}
+          {/* Travel-Bereich (manifest-getrieben) */}
           <nav className="space-y-0.5">
             <p className="px-3 pb-2 text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted">
-              Travel
+              {travelModule.name}
             </p>
-            {TRAVEL.map((i) => <Item key={i.href} {...i} />)}
+            {(travelModule.sections ?? []).map((s) => (
+              <Item key={s.href} href={s.href} name={s.label} icon={s.icon} color="blue" />
+            ))}
           </nav>
         </div>
 

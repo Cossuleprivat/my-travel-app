@@ -4,20 +4,21 @@ import { usePathname } from 'next/navigation';
 import { MODULE_REGISTRY } from '@/modules/registry';
 
 const ROUTE_LABELS: Record<string, { label: string; icon: string }> = {
-  '/dashboard':  { label: 'Hub',           icon: '⬡' },
-  '/jarvis':     { label: 'Jarvis',        icon: 'J' },
-  '/explore':    { label: 'Erkunden',      icon: '✈' },
-  '/trips':      { label: 'Trips',         icon: '◎' },
-  '/profile':    { label: 'Profil',        icon: '◈' },
-  '/calendar':   { label: 'Kalender',      icon: '📅' },
-  '/tasks':      { label: 'Tasks',         icon: '✅' },
-  '/sport':      { label: 'Sport',         icon: '🏃' },
-  '/gaming':     { label: 'Gaming',        icon: '🎮' },
-  '/reading':    { label: 'Lesen',         icon: '📚' },
-  '/finance':    { label: 'Finanzen',      icon: '💰' },
-  '/wedding':    { label: 'Hochzeit',      icon: '💍' },
-  '/goals':      { label: 'Jahresplan',    icon: '🎯' },
-  '/wiki':       { label: 'Wissensbase',   icon: '📖' },
+  '/dashboard':       { label: 'Hub',           icon: '⬡' },
+  '/jarvis':          { label: 'Jarvis',        icon: 'J' },
+  '/travel/explore':  { label: 'Erkunden',      icon: '✈' },
+  '/travel/trips':    { label: 'Trips',         icon: '◎' },
+  '/travel':          { label: 'Travel',        icon: '✈' },
+  '/profile':         { label: 'Profil',        icon: '◈' },
+  '/calendar':        { label: 'Kalender',      icon: '📅' },
+  '/tasks':           { label: 'Tasks',         icon: '✅' },
+  '/sport':           { label: 'Sport',         icon: '🏃' },
+  '/gaming':          { label: 'Gaming',        icon: '🎮' },
+  '/reading':         { label: 'Lesen',         icon: '📚' },
+  '/finance':         { label: 'Finanzen',      icon: '💰' },
+  '/wedding':         { label: 'Hochzeit',      icon: '💍' },
+  '/goals':           { label: 'Jahresplan',    icon: '🎯' },
+  '/wiki':            { label: 'Wissensbase',   icon: '📖' },
 };
 
 function getPageMeta(pathname: string) {
