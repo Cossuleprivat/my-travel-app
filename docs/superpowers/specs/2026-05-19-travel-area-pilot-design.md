@@ -47,14 +47,12 @@ export type ModuleSection = { label: string; href: string; icon: string };
 
 export type LiveOSModule = {
   // … bestehende Felder bleiben …
-  home?: string;              // Bereich-Startseite (z.B. '/travel')
-  sections?: ModuleSection[]; // Sub-Navigation des Bereichs
+  sections?: ModuleSection[]; // Sub-Navigation des Bereichs; Präsenz = navigierbarer Bereich
 };
 ```
 
 `modules/travel/manifest.ts` deklariert:
-- `href: '/travel'` (statt bisher `'/dashboard'`)
-- `home: '/travel'`
+- `href: '/travel'` (statt bisher `'/dashboard'`, dient als Bereich-Startseite/Kartenlink)
 - `sections: [{ Übersicht → /travel }, { Erkunden → /travel/explore }, { Trips → /travel/trips }]`
 
 Sidebar, Sub-Nav-Leiste und TopBar-Label lesen **ausschließlich** aus dem Manifest.

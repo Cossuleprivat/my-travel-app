@@ -49,9 +49,7 @@ export type LiveOSModule = {
   href: string;
   profileDataHref: string;
   status: ModuleStatus;
-  /** Bereich-Startseite (Sub-App-Home). Wenn gesetzt, ist dies ein navigierbarer Bereich. */
-  home?: string;
-  /** Sub-Navigation des Bereichs (Tab-Leiste + Sidebar-Unterpunkte). */
+  /** Sub-Navigation des Bereichs (Tab-Leiste + Sidebar-Unterpunkte); Präsenz = navigierbarer Bereich. */
   sections?: ModuleSection[];
 };
 
@@ -79,7 +77,6 @@ export const travelModule: LiveOSModule = {
   href: '/travel',
   profileDataHref: '/api/modules/travel/profile-data',
   status: 'active',
-  home: '/travel',
   sections: [
     { label: 'Übersicht', href: '/travel',          icon: '⬡' },
     { label: 'Erkunden',  href: '/travel/explore',  icon: '✈' },
@@ -91,7 +88,7 @@ export const travelModule: LiveOSModule = {
 - [ ] **Step 3: Typecheck**
 
 Run: `npm run typecheck`
-Expected: PASS (keine Fehler; `home`/`sections` sind optional, übrige Module unverändert gültig).
+Expected: PASS (keine Fehler; `sections` ist optional, übrige Module unverändert gültig).
 
 - [ ] **Step 4: Commit**
 
@@ -1092,7 +1089,7 @@ Nachher:
 b) Unter „### Module-Registry" ergänzen (neue Zeile direkt nach dem bestehenden Registry-Absatz):
 
 ```
-**Bereich-als-App-Pilot:** `travelModule` hat `home: '/travel'` + `sections[]`. Travel
+**Bereich-als-App-Pilot:** `travelModule` hat `href: '/travel'` + `sections[]`. Travel
 liegt unter `app/(app)/travel/**` mit eigenem `layout.tsx` (persistente Sub-Nav-Tab-Leiste).
 Alte Routen `/explore`, `/trips` → permanente Redirects in `next.config.ts`. Sidebar,
 TopBar und Sub-Nav lesen Travel aus dem Manifest. Blaupause für künftige Bereiche.
