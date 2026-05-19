@@ -25,7 +25,7 @@ export default async function ContinentPage({
   return (
     <div className="space-y-4">
       <Breadcrumb items={[
-        { label: 'Explore', href: '/explore' },
+        { label: 'Erkunden', href: '/travel/explore' },
         { label: continent.name },
       ]} />
       <header className="flex items-start gap-3">

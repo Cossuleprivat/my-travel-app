@@ -21,9 +21,9 @@ export default async function ExplorePage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="font-sans text-2xl text-text-primary">Explore</h1>
+        <h1 className="font-sans text-2xl text-text-primary">Erkunden</h1>
         <p className="text-text-secondary text-sm mt-1">
-          Browse the world or search for a place.
+          Die Welt durchstöbern oder einen Ort suchen.
         </p>
       </header>
 
