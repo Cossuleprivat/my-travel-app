@@ -10,9 +10,9 @@ export default async function TripsPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="font-sans text-2xl text-text-primary">My Trips</h1>
+        <h1 className="font-sans text-2xl text-text-primary">Meine Trips</h1>
         <p className="text-text-secondary text-sm mt-1">
-          Plan and track your travel itineraries.
+          Reisen planen und verfolgen.
         </p>
       </header>
 
@@ -20,7 +20,7 @@ export default async function TripsPage() {
 
       {trips.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border-subtle bg-bg-surface p-10 text-center">
-          <p className="text-text-secondary text-sm">No trips yet — create your first one above.</p>
+          <p className="text-text-secondary text-sm">Noch keine Trips — erstelle oben deinen ersten.</p>
         </div>
       ) : (
         <div className="space-y-3">

@@ -50,8 +50,8 @@ export async function createTrip(formData: FormData) {
   if (error) throw error;
   await awardXp(userId, XP_EVENTS.tripCreated ?? 20);
   updateStreak(userId).catch(() => {});
-  revalidatePath('/trips');
-  redirect(`/trips/${data.id}`);
+  revalidatePath('/travel/trips');
+  redirect(`/travel/trips/${data.id}`);
 }
 
 export async function updateTrip(tripId: string, formData: FormData) {
@@ -70,8 +70,8 @@ export async function updateTrip(tripId: string, formData: FormData) {
     .eq('id', tripId)
     .eq('user_id', userId);
   if (error) throw error;
-  revalidatePath(`/trips/${tripId}`);
-  revalidatePath('/trips');
+  revalidatePath(`/travel/trips/${tripId}`);
+  revalidatePath('/travel/trips');
 }
 
 export async function deleteTrip(tripId: string) {
@@ -83,8 +83,8 @@ export async function deleteTrip(tripId: string) {
     .eq('id', tripId)
     .eq('user_id', userId);
   if (error) throw error;
-  revalidatePath('/trips');
-  redirect('/trips');
+  revalidatePath('/travel/trips');
+  redirect('/travel/trips');
 }
 
 // ---- Trip Stops ----
@@ -112,7 +112,7 @@ export async function addTripStop(tripId: string, formData: FormData) {
     .from('trip_stops')
     .insert({ trip_id: tripId, city_id: city.id, position, arrival_date, departure_date });
   if (error) throw error;
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/travel/trips/${tripId}`);
 }
 
 export async function removeTripStop(tripId: string, stopId: string) {
@@ -133,7 +133,7 @@ export async function removeTripStop(tripId: string, stopId: string) {
   for (let i = 0; i < (remaining ?? []).length; i++) {
     await sb.from('trip_stops').update({ position: i + 1 }).eq('id', remaining![i].id);
   }
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/travel/trips/${tripId}`);
 }
 
 // ---- Trip Quests ----
@@ -152,14 +152,14 @@ export async function addQuestToStop(tripStopId: string, questId: string) {
   if (error && error.code !== '23505') throw error;
 
   const { data: stop } = await sb.from('trip_stops').select('trip_id').eq('id', tripStopId).maybeSingle();
-  if (stop) revalidatePath(`/trips/${stop.trip_id}`);
+  if (stop) revalidatePath(`/travel/trips/${stop.trip_id}`);
 }
 
 export async function removeQuestFromStop(tripQuestId: string, tripId: string) {
   const userId = await requireUserId();
   const sb = createServiceClient();
   await sb.from('trip_quests').delete().eq('id', tripQuestId).eq('user_id', userId);
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/travel/trips/${tripId}`);
 }
 
 export async function completeTripQuest(tripQuestId: string, tripId: string) {
@@ -198,6 +198,6 @@ export async function completeTripQuest(tripQuestId: string, tripId: string) {
     await awardXp(userId, XP_EVENTS.sightCompleted);
   }
 
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/travel/trips/${tripId}`);
   revalidatePath('/dashboard');
 }

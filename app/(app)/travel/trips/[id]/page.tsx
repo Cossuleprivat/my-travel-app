@@ -50,7 +50,7 @@ async function TripContent({ trip, routeId }: { trip: TripDetail; routeId: strin
       <header>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <Link href="/trips" className="text-xs label-mono text-text-muted hover:text-text-secondary">
+            <Link href="/travel/trips" className="text-xs label-mono text-text-muted hover:text-text-secondary">
               ← Trips
             </Link>
             <h1 className="font-sans text-2xl text-text-primary mt-1">{trip.title}</h1>
@@ -130,7 +130,7 @@ async function TripContent({ trip, routeId }: { trip: TripDetail; routeId: strin
                   </span>
                   <div className="flex-1 min-w-0">
                     <Link
-                      href={`/explore/${stop.continentSlug}/${stop.countrySlug}/${stop.citySlug}`}
+                      href={`/travel/explore/${stop.continentSlug}/${stop.countrySlug}/${stop.citySlug}`}
                       className="text-text-primary font-sans hover:text-accent-blue transition-colors"
                     >
                       {stop.cityName}
