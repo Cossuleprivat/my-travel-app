@@ -30,7 +30,7 @@ export default async function CountryPage({
     <div className="space-y-4">
       <Breadcrumb items={[
         { label: 'Erkunden', href: '/travel/explore' },
-        { label: continent.name, href: `/explore/${continent.slug}` },
+        { label: continent.name, href: `/travel/explore/${continent.slug}` },
         { label: country.name },
       ]} />
       <header className="flex items-start gap-3">
@@ -57,7 +57,7 @@ export default async function CountryPage({
           return (
             <li key={city.id}>
               <HierarchyRow
-                href={`/explore/${continent.slug}/${country.slug}/${city.slug}`}
+                href={`/travel/explore/${continent.slug}/${country.slug}/${city.slug}`}
                 icon="◉"
                 title={city.name}
                 status={isCityVisited ? 'visited' : 'untouched'}

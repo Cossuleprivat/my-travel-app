@@ -45,8 +45,8 @@ export default async function CityPage({
     <div className="space-y-5">
       <Breadcrumb items={[
         { label: 'Erkunden', href: '/travel/explore' },
-        { label: continent.name, href: `/explore/${continent.slug}` },
-        { label: country.name, href: `/explore/${continent.slug}/${country.slug}` },
+        { label: continent.name, href: `/travel/explore/${continent.slug}` },
+        { label: country.name, href: `/travel/explore/${continent.slug}/${country.slug}` },
         { label: city.name },
       ]} />
 

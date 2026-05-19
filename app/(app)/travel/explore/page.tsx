@@ -48,7 +48,7 @@ export default async function ExplorePage() {
           return (
             <li key={c.id}>
               <HierarchyRow
-                href={`/explore/${c.slug}`}
+                href={`/travel/explore/${c.slug}`}
                 icon={c.emoji ?? '◎'}
                 title={c.name}
                 subtitle={`${total} countries`}

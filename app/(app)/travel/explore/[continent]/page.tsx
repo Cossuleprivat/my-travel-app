@@ -48,7 +48,7 @@ export default async function ContinentPage({
           return (
             <li key={co.id}>
               <HierarchyRow
-                href={`/explore/${continent.slug}/${co.slug}`}
+                href={`/travel/explore/${continent.slug}/${co.slug}`}
                 icon={co.flag_emoji ?? '🏳'}
                 title={co.name}
                 subtitle={co.iso2 ?? undefined}
