@@ -61,15 +61,15 @@ export default async function DashboardPage() {
   // All active modules except travel (travel has its own highlight section)
   const lifeModules = MODULE_REGISTRY.filter((m) => m.status === 'active' && m.id !== 'travel');
 
-  const tripRange =
-    nextTrip && (nextTrip.start_date || nextTrip.end_date)
-      ? [nextTrip.start_date, nextTrip.end_date]
-          .filter(Boolean)
-          .map((d) =>
-            new Date(d as string).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }),
-          )
-          .join(' – ')
-      : null;
+  // pickNextTrip garantiert: ein zurückgegebener Trip hat immer ein start_date.
+  const tripRange = nextTrip
+    ? [nextTrip.start_date, nextTrip.end_date]
+        .filter(Boolean)
+        .map((d) =>
+          new Date(d as string).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }),
+        )
+        .join(' – ')
+    : null;
 
   return (
     <div className="space-y-5">
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
           <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-text-muted">Travel</p>
           <Link href="/travel" className="text-accent-blue text-xs label-mono">Bereich öffnen →</Link>
         </div>
-        <Link href="/travel" className="block">
+        <Link href="/travel" className="block transition-transform active:scale-[0.99]">
           <div className="grid grid-cols-2 gap-3 mb-2">
             <KpiCard label="Kontinente" value={stats.continentCount} total={7} tone="blue" />
             <KpiCard label="Länder"     value={stats.countryCount}             tone="amber" />
